@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Book-It | Find Hostels & Lodges</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <a href="index.html" class="logo">
+  <img src="C:\Users\LENOVO X250\Desktop\BOOK-IT\book it (1).png" alt="Book-It Logo">
+</a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="index.html">Browse</a>
+      <a href="post.html">Post Lodge</a>
+    </nav>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="hero">
+    <h2>Find Student-Friendly Hostels & Lodges</h2>
+    <p>Search by location and budget</p>
+
+    <!-- SEARCH BAR -->
+    <div class="search-box">
+      <input type="text" id="locationInput" placeholder="Location">
+      <input type="number" id="minPrice" placeholder="Min ₦">
+      <input type="number" id="maxPrice" placeholder="Max ₦">
+      <button onclick="searchListings()">Search</button>
+    </div>
+  </section>
+
+  <!-- LISTINGS -->
+  <section class="listings" id="listingsContainer">
+    <!-- JS inserts cards here -->
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>© 2025 Book-It. Student housing made easy.</p>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/listings.js"></script>
+  <script src="js/search.js"></script>
+</body>
+</html>

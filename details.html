@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Book-It | Lodge or Hostel Details</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<style>
+    /* DETAILS PAGE - AIRBNB STYLE */
+.details-card {
+  max-width: 900px;
+  margin: 50px auto;
+  padding : 30px;
+  background-color: #fff;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+}
+
+.details-card img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 25px;
+}
+
+.details-card h2 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #222;
+}
+
+.details-card p {
+  font-size: 16px;
+  color: #555;
+  margin: 12px 0;
+}
+
+.details-card strong {
+  color: #222;
+}
+
+.details-card ul {
+  list-style: disc;
+  padding-left: 20px;
+  margin-bottom: 15px;
+  color: #555;
+}
+
+.details-card ul li {
+  margin-bottom: 6px;
+}
+
+.whatsapp-btn {
+  display: block; /* makes it take full width of content area for centering */
+  width: fit-content; /* shrink to fit text */
+  margin: 20px auto 0 auto; /* top 20px, horizontally centered */
+  background-color: #000000;
+  color: #fff;
+  font-weight: 600;
+  padding: 12px 28px;
+  border-radius: 100px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.whatsapp-btn:hover {
+  background-color: #333; /* optional hover effect */
+}
+
+
+.whatsapp-btn:hover {
+  background-color: #1ebe5d;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .details-card {
+    padding: 20px;
+  }
+
+  .details-card img {
+    height: 250px;
+  }
+
+  .details-card h2 {
+    font-size: 24px;
+  }
+
+  .details-card p, .details-card ul li {
+    font-size: 14px;
+  }
+}
+ 
+ /* Classic spacing and ash dividers for better readability */
+.details-card {
+  line-height: 1.8; /* more breathing space between lines */
+  color: #333;
+}
+
+.details-card p + p,
+.details-card ul + p {
+  border-top: 1px solid #eee; /* ash divider line */
+  padding-top: 15px;
+  margin-top: 15px;
+}
+
+/* Amenities as stylish badges */
+.details-card ul {
+  list-style: none;
+  padding-left: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 15px 0;
+}
+
+.details-card ul li {
+  background-color: #f8f8f8; /* soft light gray */
+  color: #333; /* darker text for better contrast */
+  padding: 8px 16px; /* slightly larger padding */
+  border-radius: 20px; /* pill-shaped badges */
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); /* subtle shadow for depth */
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: default;
+}
+
+.details-card ul li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* subtle hover pop */
+}
+
+
+</style>
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <a href="index.html" class="logo">
+  <img src="C:\Users\LENOVO X250\Desktop\BOOK-IT\book it (1).png" alt="Book-It Logo">
+</a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="index.html">Browse</a>
+      <a href="post.html">Post Lodge</a>
+    </nav>
+  </header>
+
+  <!-- LISTING DETAILS -->
+  <section class="listing-details" id="listingDetailsContainer">
+    <!-- JS will inject content here -->
+  </section>
+
+  <footer class="footer">
+    <p>© 2025 Book-It. Student housing made easy.</p>
+  </footer>
+
+  <script src="js/data.js"></script>
+<script>
+const container = document.getElementById("listingDetailsContainer");
+const selectedId = Number(localStorage.getItem("selectedListing"));
+
+// Read from localStorage if exists, otherwise fallback to data.js
+const listingsDataToUse = JSON.parse(localStorage.getItem("listings")) || listingsData;
+
+const listing = listingsDataToUse.find(item => item.id === selectedId);
+
+if (!listing) {
+  container.innerHTML = "<p>Listing not found.</p>";
+} else {
+  const whatsappLink = `https://wa.me/234${listing.agentPhone.slice(1)}?text=Hello%20I'm%20interested%20in%20${listing.title}`;
+  container.innerHTML = `
+    <div class="details-card">
+      <img src="${listing.image}">
+      <h2>${listing.title}</h2>
+      <p><strong>Location:</strong> ${listing.location}</p>
+      <p><strong>Price:</strong> ₦${listing.price.toLocaleString()}</p>
+      <p><strong>Room Type:</strong> ${listing.rooms}</p>
+      <p><strong>Description:</strong><br>${listing.description}</p>
+      <p><strong>Rules:</strong><br>${listing.rules}</p>
+      <p><strong>Amenities:</strong></p>
+      <ul>${listing.amenities.map(a => `<li>${a}</li>`).join("")}</ul>
+      <p><strong>Agent:</strong> ${listing.agentName}</p>
+      <a href="${whatsappLink}" target="_blank" class="whatsapp-btn">📞 Contact Agent on WhatsApp</a>
+    </div>
+  `;
+}
+</script>
+
+
+</body>
+</html>

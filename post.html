@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Book-It | Post Lodge or Hostel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Page-specific styling */
+    .post-container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    .post-container h2 {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .post-container label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .post-container input,
+    .post-container textarea,
+    .post-container select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    .post-container textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .post-container button {
+      margin-top: 25px;
+      width: 100%;
+      padding: 12px;
+      background: #0a7cff;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .post-container button:hover {
+      background: #055ec2;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <a href="index.html" class="logo">
+  <img src="C:\Users\LENOVO X250\Desktop\BOOK-IT\book it (1).png" alt="Book-It Logo">
+</a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="index.html">Browse</a>
+      <a href="post.html">Post Lodge</a>
+    </nav>
+  </header>
+
+  <!-- FORM -->
+  <div class="post-container">
+    <h2>Post a Lodge / Hostel</h2>
+
+    <form id="postForm">
+
+      <label for="title">Lodge / Hostel Name</label>
+      <input type="text" id="title" required>
+
+        <label for="Location">Location</label>
+      <select id="Location">
+        <option value="Ifite-Up school">Ifite-Up School</option>
+        <option value="Ifite-Down school">Ifite-Down school</option>
+        <option value="Amansea">Amansea</option>
+        <option value="Temp Site">Temp Site</option>
+        <option value="Aroma">Aroma</option>
+      </select>
+
+      <label for="Street">Street</label>
+      <input type="text" id="Street" required>
+      
+
+      <label for="price">Annual Price (₦)</label>
+      <input type="number" id="price" required>
+
+      <label for="rooms">Room Type</label>
+      <select id="rooms">
+        <option value="Self-contained">Self-contained</option>
+        <option value="Single Room">Single Room</option>
+        <option value="Shared Room">Shared Room</option>
+      </select>
+
+      <label for="amenities">Amenities (comma separated)</label>
+      <input type="text" id="amenities" placeholder="Water, Light, Security, WiFi">
+
+      <label for="description">Description</label>
+      <textarea id="description"></textarea>
+
+      <label for="rules">Rules</label>
+      <textarea id="rules" placeholder="e.g. No loud music after 10pm"></textarea>
+
+      <label for="agentName">Agent Name</label>
+      <input type="text" id="agentName" required>
+
+      <label for="agentPhone">Agent WhatsApp Number</label>
+      <input type="tel" id="agentPhone" placeholder="08012345678" required>
+
+      <button type="submit">Post Listing</button>
+    </form>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>© 2025 Book-It. Student housing made easy.</p>
+  </footer>
+
+  <!-- SCRIPT -->
+  <script>
+    document.getElementById("postForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      // Get existing listings
+      const listings = JSON.parse(localStorage.getItem("listings")) || [];
+
+      const newListing = {
+        id: Date.now(),
+        title: document.getElementById("title").value,
+        location: document.getElementById("location").value,
+        price: Number(document.getElementById("price").value),
+        rooms: document.getElementById("rooms").value,
+        amenities: document.getElementById("amenities").value,
+        street: document.getElementById("street")
+          .split(",")
+          .map(a => a.trim())
+          .filter(a => a),
+        description: document.getElementById("description").value,
+        rules: document.getElementById("rules").value,
+        agentName: document.getElementById("agentName").value,
+        agentPhone: document.getElementById("agentPhone").value,
+        image: "images/default.jpg"
+      };
+
+      listings.push(newListing);
+      localStorage.setItem("listings", JSON.stringify(listings));
+
+      alert("Listing posted successfully!");
+      window.location.href = "index.html";
+    });
+  </script>
+
+</body>
+</html>
