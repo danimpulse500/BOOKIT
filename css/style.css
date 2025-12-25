@@ -20,13 +20,11 @@ body {
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
-.logo {
-  color: #130569;
-}
 .navbar .logo img {
-  height: 50px; /* adjust size */
-  object-fit: contain;
+  height: 40px;
+  width: auto;
 }
+
 
 .navbar a {
   margin-left: 15px;
