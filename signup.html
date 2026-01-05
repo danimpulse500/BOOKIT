@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup</title>
+    <!-- Include the Supabase client library BEFORE your script -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+      <style>
+    * { box-sizing: border-box; font-family: "Segoe UI", Arial, sans-serif; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0a7cff, #005bd1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .auth-box {
+      background: #fff;
+      width: 100%;
+      max-width: 380px;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      animation: slideUp 0.5s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .auth-box h2 { text-align: center; margin-bottom: 20px; color: #0a7cff; }
+    .auth-box input, .auth-box select {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 15px;
+    }
+    .auth-box input:focus, .auth-box select:focus { outline: none; border-color: #0a7cff; }
+    .auth-box button {
+      width: 100%;
+      padding: 12px;
+      background: #0a7cff;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .auth-box button:hover { background: #055ec2; }
+    .auth-footer { text-align: center; margin-top: 15px; font-size: 14px; }
+    .auth-footer a { color: #0a7cff; text-decoration: none; font-weight: 600; }
+    .auth-footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 480px) { 
+      .auth-box { margin: 0 15px; padding: 25px; }
+      body { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+    <!-- Your HTML content -->
+     <div class="auth-box">
+  <h2>Create Account</h2>
+
+  <input type="text" id="name" placeholder="Full Name" required>
+  <input type="email" id="email" placeholder="Email address" required>
+  <input type="password" id="password" placeholder="Password" required>
+
+  <select id="role" required>
+    <option value="">Select Role</option>
+    <option value="lodger">Lodger</option>
+    <option value="agent">Agent</option>
+  </select>
+
+  <!-- Agency input for Agents only -->
+  <input type="text" id="agency" placeholder="Agency Name (Agents only)" style="display:none;">
+
+  <button onclick="signup()">Sign Up</button>
+
+  <div class="auth-footer">
+    Already have an account? <a href="login.html">Login</a>
+  </div>
+</div>
+
+    <script>
+      // 1️⃣ Initialize Supabase once
+      // Now 'Supabase' will be defined because the library is loaded
+      window.supabase = Supabase.createClient(
+        "https://sgwgnysdejtobrbcglke.supabase.co",
+        "sb_publishable_ah6iNOPj5d1wdOveSypkhg_XnbIlIJ3"
+      );
+
+      // Show/hide agency field
+      document.getElementById("role").addEventListener("change", function() {
+        const agencyInput = document.getElementById("agency");
+        if (this.value.toLowerCase() === "agent") {
+          agencyInput.style.display = "block";
+        } else {
+          agencyInput.style.display = "none";
+          agencyInput.value = "";
+        }
+      });
+
+      // 2️⃣ Signup function
+      // 2️⃣ Signup function
+  window.signup = async function() {
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const role = document.getElementById("role").value;
+    const agency_name = role.toLowerCase() === "agent" ? document.getElementById("agency").value.trim() : "";
+
+    if (!name || !email || !password || !role) {
+      alert("Please fill in all fields");
+      return;
+    }
+    if (role.toLowerCase() === "agent" && !agency_name) {
+      alert("Please enter your agency name");
+      return;
+    }
+
+    try {
+      // 3️⃣ Create Auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
+      if (authError) throw authError;
+
+      const user = authData.user;
+
+      // 4️⃣ Insert into users table
+      const { error: profileError } = await supabase
+        .from("users")
+        .insert([{ id: user.id, name, email, role, agency_name }]);
+      if (profileError) throw profileError;
+
+      // 5️⃣ Save info locally
+      localStorage.setItem("loggedInUser", "true");
+      localStorage.setItem("userName", name);
+      localStorage.setItem("userRole", role);
+
+      alert("Signup successful!");
+      window.location.href = "index.html";
+
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Something went wrong!");
+    }
+  }
+    </script>
+</body>
+</html>

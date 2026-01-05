@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Listings | Book-It</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="navbar">
+  <a href="index.html" class="logo">
+    <img src="logo.png" alt="Book-It Logo">
+  </a>
+
+  <!-- Desktop Menu -->
+  <nav class="menu-panel desktop-nav" id="navMenu">
+    <a href="index.html">Home</a>
+    <a href="contact.html">Contact/Support</a>
+    <a href="post.html" id="postLink">Post Lodge</a>
+    <div class="user-area" id="userArea"></div> 
+  </nav>
+
+  <!-- Mobile Menu Button -->
+  <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+
+  <!-- Mobile Menu -->
+  <nav class="menu-panel mobile-nav" id="mobileNav"></nav>
+</header>
+
+<section class="listings-container" id="listingsContainer">
+  <!-- JS inserts agent listings here -->
+</section>
+
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const listingsContainer = document.getElementById("listingsContainer");
+  const userName = localStorage.getItem("userName");
+  if (!userName) {
+    window.location.href = "login.html"; // redirect if not logged in
+    return;
+  }
+
+  // Use localStorage listings or fallback to data.js
+  let listingsDataToUse = JSON.parse(localStorage.getItem("listings")) || listingsData;
+
+  // Filter listings for this agent
+  const myListings = listingsDataToUse.filter(listing => listing.agentName === userName);
+
+  function renderListings(listings) {
+    if(listings.length === 0) {
+      listingsContainer.innerHTML = "<p style='text-align:center;color:#555;'>You have no listings yet.</p>";
+      return;
+    }
+
+    listingsContainer.innerHTML = listings.map(listing => `
+      <div class="listing-card">
+        <img src="${listing.image}" alt="${listing.title}">
+        <div class="card-body">
+          <h4>${listing.title}</h4>
+          <p>${listing.location}</p>
+          <p class="price">₦${listing.price.toLocaleString()}</p>
+          <div class="card-actions">
+            <button class="edit-btn" onclick="editListing(${listing.id})">Edit</button>
+            <button class="delete-btn" onclick="deleteListing(${listing.id})">Delete</button>
+          </div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  renderListings(myListings);
+
+  // Edit listing
+  window.editListing = function(id) {
+    localStorage.setItem("selectedListing", id);
+    window.location.href = "edit-listing.html"; // create a separate edit page
+  }
+
+  // Delete listing
+  window.deleteListing = function(id) {
+    if(confirm("Are you sure you want to delete this listing?")) {
+      listingsDataToUse = listingsDataToUse.filter(l => l.id !== id);
+      localStorage.setItem("listings", JSON.stringify(listingsDataToUse));
+      renderListings(listingsDataToUse.filter(l => l.agentName === userName));
+    }
+  }
+});
+</script>
+
+</body>
+</html>

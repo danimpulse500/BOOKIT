@@ -4,21 +4,66 @@
   <meta charset="UTF-8">
   <title>Book-It | Find Hostels & Lodges</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- NAVBAR -->
+<!-- NAVBAR -->
 <header class="navbar">
   <a href="index.html" class="logo">
     <img src="logo.png" alt="Book-It Logo">
   </a>
- <nav>
-      <a href="index.html">Home</a>
-      <a href="index.html">Browse</a>
-      <a href="post.html">Post Lodge</a>
-    </nav>
-  </header>
+
+  <!-- Desktop Menu -->
+  <nav class="menu-panel desktop-nav" id="navMenu">
+    <a href="index.html">Home</a>
+    <a href="contact.html">Contact/Support</a>
+    <a href="post.html" id="postLink">Post Lodge</a>
+    <div class="user-area" id="userArea"></div> 
+  </nav>
+
+  <!-- Mobile Menu Button -->
+  <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+
+  <!-- Mobile Menu -->
+  <nav class="menu-panel mobile-nav" id="mobileNav"></nav>
+</header>
+
+
+<!-- MOBILE SEARCH PILL -->
+<div class="mobile-search-pill" id="mobileSearchPill">
+  <span class="search-label">Where are you staying?</span>
+  <span class="search-action">Search</span>
+</div>
+
+
+<!-- MOBILE SEARCH MODAL -->
+<div class="search-modal" id="searchModal">
+  <div class="search-modal-content">
+    <h3>Search Hostels</h3>
+
+        <select id="locationInputMobile" class="modern-select">
+          <option value="">Select Location</option>
+          <option value="Amansea">Amansea</option>
+          <option value="Ifite-Up School">Ifite – Up School</option>
+          <option value="Ifite-Down School">Ifite – Down School</option>
+          <option value="Permanent Site">Permanent Site</option>
+          <option value="Temp Site">Temp Site</option>
+          <option value="Unizik Gate">Unizik Gate</option>
+          <option value="Awka Road">Awka Road</option>
+        </select>
+
+
+    <input type="number" id="minPriceMobile" placeholder="Min ₦">
+    <input type="number" id="maxPriceMobile" placeholder="Max ₦">
+
+    <button id="mobileSearchBtn" onclick="mobileSearch()">Search</button>
+    <button class="close-btn" id="closeSearchBtn">Cancel</button>
+  </div>
+</div>
+
+
 
   <!-- HERO SECTION -->
   <section class="hero">
@@ -27,7 +72,20 @@
 
     <!-- SEARCH BAR -->
     <div class="search-box">
-      <input type="text" id="locationInput" placeholder="Location">
+        <div class="select-wrapper">
+          <select id="locationInput" class="modern-select">
+            <option value="">Select Location</option>
+            <option value="Amansea">Amansea</option>
+            <option value="Ifite-Up School">Ifite – Up School</option>
+            <option value="Ifite-Down School">Ifite – Down School</option>
+            <option value="Permanent Site">Permanent Site</option>
+            <option value="Temp Site">Temp Site</option>
+            <option value="Unizik Gate">Unizik Gate</option>
+            <option value="Awka Road">Awka Road</option>
+          </select>
+        </div>
+
+
       <input type="number" id="minPrice" placeholder="Min ₦">
       <input type="number" id="maxPrice" placeholder="Max ₦">
       <button onclick="searchListings()">Search</button>
@@ -35,7 +93,7 @@
   </section>
 
   <!-- LISTINGS -->
-  <section class="listings" id="listingsContainer">
+  <section class="listings-container" id="listingsContainer">
     <!-- JS inserts cards here -->
   </section>
 
@@ -44,8 +102,55 @@
     <p>© 2025 Book-It. Student housing made easy.</p>
   </footer>
 
-  <script src="js/data.js"></script>
+  <!-- SCRIPTS -->
+ <script src="js/data.js"></script>
   <script src="js/listings.js"></script>
   <script src="js/search.js"></script>
+  <script src="js/main.js"></script>
+  
+  <script>
+          // MOBILE MENU TOGGLE
+      const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+      const desktopNav = document.getElementById("navMenu");
+
+      mobileMenuBtn.addEventListener("click", () => {
+        desktopNav.classList.toggle("active");
+      });
+
+      // MOBILE SEARCH MODAL
+      const searchModal = document.getElementById("searchModal");
+      const mobileSearchPill = document.getElementById("mobileSearchPill");
+      const closeSearchBtn = document.getElementById("closeSearchBtn");
+      const mobileSearchBtn = document.getElementById("mobileSearchBtn");
+
+      mobileSearchPill.addEventListener("click", () => {
+        searchModal.classList.add("active");
+      });
+
+      closeSearchBtn.addEventListener("click", () => {
+        searchModal.classList.remove("active");
+      });
+
+      // MOBILE SEARCH FUNCTION
+      mobileSearchBtn.addEventListener("click", () => {
+        // Copy values to desktop inputs
+        document.getElementById("locationInput").value =
+          document.getElementById("locationInputMobile").value;
+        document.getElementById("minPrice").value =
+          document.getElementById("minPriceMobile").value;
+        document.getElementById("maxPrice").value =
+          document.getElementById("maxPriceMobile").value;
+
+        // Close modal
+        searchModal.classList.remove("active");
+
+        // Trigger existing desktop search
+        if (typeof searchListings === "function") {
+          searchListings();
+        }
+      });
+
+  </script>
+
 </body>
 </html>

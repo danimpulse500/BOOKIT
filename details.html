@@ -4,9 +4,15 @@
   <meta charset="UTF-8">
   <title>Book-It | Lodge or Hostel Details</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <script>
+  if (!localStorage.getItem("loggedInUser")) {
+    window.location.href = "login.html";
+  }
+</script>
 <style>
     /* DETAILS PAGE - AIRBNB STYLE */
 .details-card {
@@ -143,13 +149,25 @@
 <header class="navbar">
   <a href="index.html" class="logo">
     <img src="logo.png" alt="Book-It Logo">
-  </a> 
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="index.html">Browse</a>
-      <a href="post.html">Post Lodge</a>
-    </nav>
-  </header>
+  </a>
+
+  <!-- DESKTOP NAV -->
+  <nav id="navMenu">
+    <a href="index.html">Home</a>
+    <a href="index.html">Browse</a>
+    <a href="post.html" id="postLink">Post Lodge</a>
+  </nav>
+
+  <!-- USER AREA (Capsule injected by JS) -->
+  <div id="userArea"></div>
+
+  <!-- MOBILE MENU BUTTON -->
+  <button id="mobileMenuBtn" class="mobile-menu-btn">☰</button>
+</header>
+
+<!-- MOBILE NAV DROPDOWN -->
+<div id="mobileNav" class="mobile-nav"></div>
+
 
   <!-- LISTING DETAILS -->
   <section class="listing-details" id="listingDetailsContainer">
@@ -160,7 +178,9 @@
     <p>© 2025 Book-It. Student housing made easy.</p>
   </footer>
 
-  <script src="js/data.js"></script>
+   <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+
 <script>
 const container = document.getElementById("listingDetailsContainer");
 const selectedId = Number(localStorage.getItem("selectedListing"));

@@ -2,167 +2,378 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Book-It | Post Lodge or Hostel</title>
+  <title>Book-It | Post Lodge</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+
   <link rel="stylesheet" href="css/style.css">
   <style>
-    /* Page-specific styling */
-    .post-container {
-      max-width: 600px;
-      margin: 40px auto;
+    /* BODY & LAYOUT */
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      background: #f7f7f7;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header.navbar, footer.footer {
+      flex-shrink: 0;
+      padding: 15px 30px;
       background: #fff;
-      padding: 25px;
-      border-radius: 8px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .form-wrapper {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow: hidden;
     }
 
-    .post-container h2 {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    .post-container label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-      font-size: 14px;
-    }
-
-    .post-container input,
-    .post-container textarea,
-    .post-container select {
+    /* MULTI-STEP FORM */
+    .multi-step-form {
+      background: #fff;
+      border-radius: 12px;
       width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      font-size: 14px;
+      max-width: 500px;
+      max-height: 80vh;
+      padding: 30px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
-    .post-container textarea {
+    .form-step {
+      display: none;
+      flex-direction: column;
+      overflow-y: auto;
+      max-height: calc(80vh - 80px);
+    }
+    .form-step.active {
+      display: flex;
+    }
+
+    .form-step h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    label {
+      margin-top: 15px;
+      font-weight: 500;
+      font-size: 14px;
+      color: #333;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      outline: none;
+      box-sizing: border-box;
+    }
+    textarea {
       resize: vertical;
       min-height: 80px;
     }
 
-    .post-container button {
+    .buttons {
+      display: flex;
+      justify-content: space-between;
       margin-top: 25px;
-      width: 100%;
-      padding: 12px;
-      background: #0a7cff;
-      color: #fff;
+    }
+    .buttons button {
+      padding: 12px 20px;
       border: none;
-      border-radius: 6px;
-      font-size: 16px;
+      border-radius: 8px;
       cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .prev-btn { background: #ddd; color: #333; }
+    .prev-btn:hover { background: #ccc; }
+    .next-btn { background: linear-gradient(135deg, #130569, #2b1bbf); color: #fff; }
+    .next-btn:hover { background: linear-gradient(135deg, #130569, #2b1bbf); }
+
+    /* PROGRESS BAR */
+    .progress-container {
+      width: 100%;
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(135deg, #130569, #2b1bbf);
+      transition: width 0.3s ease-in-out;
     }
 
-    .post-container button:hover {
-      background: #055ec2;
+    /* IMAGE PREVIEW */
+    .image-preview {
+      margin-top: 10px;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+      display: none;
     }
-  </style>
+    /* MODAL STYLES */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 15% auto;
+  padding: 20px;
+  border-radius: 12px;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close:hover {
+  color: #333;
+}
+</style>
+
 </head>
 <body>
 
-  <!-- NAVBAR -->
 <header class="navbar">
   <a href="index.html" class="logo">
     <img src="logo.png" alt="Book-It Logo">
   </a>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="index.html">Browse</a>
-      <a href="post.html">Post Lodge</a>
-    </nav>
-  </header>
 
-  <!-- FORM -->
-  <div class="post-container">
-    <h2>Post a Lodge / Hostel</h2>
+  <!-- Desktop Menu -->
+  <nav class="menu-panel desktop-nav" id="navMenu">
+    <a href="index.html">Home</a>
+    <a href="contact.html">Contact/Support</a>
+    <a href="post.html" id="postLink">Post Lodge</a>
+    <div class="user-area" id="userArea"></div> 
+  </nav>
 
-    <form id="postForm">
+  <!-- Mobile Menu Button -->
+  <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
 
-      <label for="title">Lodge / Hostel Name</label>
-      <input type="text" id="title" required>
+  <!-- Mobile Menu -->
+  <nav class="menu-panel mobile-nav" id="mobileNav"></nav>
+</header>
 
-        <label for="Location">Location</label>
-      <select id="Location">
-        <option value="Ifite-Up school">Ifite-Up School</option>
-        <option value="Ifite-Down school">Ifite-Down school</option>
-        <option value="Amansea">Amansea</option>
-        <option value="Temp Site">Temp Site</option>
-        <option value="Aroma">Aroma</option>
-      </select>
+  <div class="form-wrapper">
+    <form id="multiStepForm" class="multi-step-form">
 
-      <label for="Street">Street</label>
-      <input type="text" id="Street" required>
-      
+      <div class="progress-container">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
 
-      <label for="price">Annual Price (₦)</label>
-      <input type="number" id="price" required>
+            <!-- Step 1: Basic Info -->
+            <div class="form-step active">
+              <h2>Basic Info</h2>
+              <label for="title">Lodge Name</label>
+              <input type="text" id="title" required>
 
-      <label for="rooms">Room Type</label>
-      <select id="rooms">
-        <option value="Self-contained">Self-contained</option>
-        <option value="Single Room">Single Room</option>
-        <option value="Shared Room">Shared Room</option>
-      </select>
+              <label for="Location">Location</label>
+              <select id="Location" required>
+                <option value="">Select Location</option>
+                <option value="Ifite-Up school">Ifite-Up School</option>
+                <option value="Ifite-Down school">Ifite-Down School</option>
+                <option value="Amansea">Amansea</option>
+                <option value="Temp Site">Temp Site</option>
+                <option value="Aroma">Aroma</option>
+              </select>
 
-      <label for="amenities">Amenities (comma separated)</label>
-      <input type="text" id="amenities" placeholder="Water, Light, Security, WiFi">
+              <label for="Street">Street</label>
+              <input type="text" id="Street" required>
 
-      <label for="description">Description</label>
-      <textarea id="description"></textarea>
+              <div class="buttons">
+                <span></span>
+                <button type="button" class="next-btn">Next</button>
+              </div>
+            </div>
 
-      <label for="rules">Rules</label>
-      <textarea id="rules" placeholder="e.g. No loud music after 10pm"></textarea>
+            <!-- Step 2: Rooms & Amenities -->
+            <div class="form-step">
+              <h2>Rooms & Amenities</h2>
 
-      <label for="agentName">Agent Name</label>
-      <input type="text" id="agentName" required>
+              <label for="rooms">Room Type</label>
+              <select id="rooms" required>
+                <option value="">Select Room Type</option>
+                <option value="Self-contained">Self-contained</option>
+                <option value="Single Room">Single Room</option>
+                <option value="Shared Room">Shared Room</option>
+              </select>
 
-      <label for="agentPhone">Agent WhatsApp Number</label>
-      <input type="tel" id="agentPhone" placeholder="08012345678" required>
+              <label for="roomNumber">Number of Rooms</label>
+              <input type="number" id="roomNumber" min="1" required>
 
-      <button type="submit">Post Listing</button>
+              <label for="price">Annual Price (₦)</label>
+              <input type="number" id="price" min="1000" required>
+
+              <label for="amenities">Amenities (comma separated)</label>
+              <input type="text" id="amenities" placeholder="Water, Light, Security, WiFi" required>
+
+              <label for="description">Description</label>
+              <textarea id="description" placeholder="Describe the lodge" required></textarea>
+
+              <label for="rules">Rules</label>
+              <textarea id="rules" placeholder="e.g. No loud music after 10pm" required></textarea>
+
+              <div class="buttons">
+                <button type="button" class="prev-btn">Previous</button>
+                <button type="button" class="next-btn">Next</button>
+              </div>
+            </div>
+
+            <!-- Step 3: Agent & Image -->
+            <div class="form-step">
+              <h2>Agent & Image</h2>
+
+              <label for="agentName">Agent Name</label>
+              <input type="text" id="agentName" required>
+
+              <label for="agentPhone">Agent WhatsApp Number</label>
+              <input type="tel" id="agentPhone" placeholder="08012345678" required pattern="\d{10,15}">
+
+              <label for="image">Upload Image</label>
+              <input type="file" id="listingImage" accept="image/*">
+              <img id="imagePreview" class="image-preview" src="#" alt="Image Preview">
+
+              <div class="buttons">
+                <button type="button" class="prev-btn">Previous</button>
+                <button type="submit" class="next-btn">Submit</button>
+              </div>
+            </div>
+
+
     </form>
   </div>
+<!-- Validation Modal -->
+<div id="validationModal" class="modal">
+  <div class="modal-content">
+    <span id="closeModal" class="close">&times;</span>
+    <p>Please fill all required fields in this step!</p>
+  </div>
+</div>
 
-  <!-- FOOTER -->
+
   <footer class="footer">
     <p>© 2025 Book-It. Student housing made easy.</p>
   </footer>
 
-  <!-- SCRIPT -->
+  <script src="js/main.js"></script>
   <script>
-    document.getElementById("postForm").addEventListener("submit", function (e) {
-      e.preventDefault();
+   const steps = document.querySelectorAll(".form-step");
+const nextBtns = document.querySelectorAll(".next-btn");
+const prevBtns = document.querySelectorAll(".prev-btn");
+const progressBar = document.getElementById("progressBar");
+let currentStep = 0;
 
-      // Get existing listings
-      const listings = JSON.parse(localStorage.getItem("listings")) || [];
+// Modal elements
+const modal = document.getElementById("validationModal");
+const closeModal = document.getElementById("closeModal");
+closeModal.onclick = () => modal.style.display = "none";
+window.onclick = e => { if (e.target == modal) modal.style.display = "none"; }
 
-      const newListing = {
-        id: Date.now(),
-        title: document.getElementById("title").value,
-        location: document.getElementById("location").value,
-        price: Number(document.getElementById("price").value),
-        rooms: document.getElementById("rooms").value,
-        amenities: document.getElementById("amenities").value,
-        street: document.getElementById("street")
-          .split(",")
-          .map(a => a.trim())
-          .filter(a => a),
-        description: document.getElementById("description").value,
-        rules: document.getElementById("rules").value,
-        agentName: document.getElementById("agentName").value,
-        agentPhone: document.getElementById("agentPhone").value,
-        image: "images/default.jpg"
-      };
+function updateStep() {
+  steps.forEach((step, index) => step.classList.toggle("active", index === currentStep));
+  progressBar.style.width = ((currentStep + 1) / steps.length * 100) + "%";
+}
 
-      listings.push(newListing);
-      localStorage.setItem("listings", JSON.stringify(listings));
+// Check required fields in current step
+function validateStep() {
+  const inputs = steps[currentStep].querySelectorAll("input, select, textarea");
+  for (let input of inputs) {
+    if (input.hasAttribute("required") && !input.value) {
+      modal.style.display = "block";
+      return false;
+    }
+  }
+  return true;
+}
 
-      alert("Listing posted successfully!");
-      window.location.href = "index.html";
-    });
+nextBtns.forEach(btn => btn.addEventListener("click", () => {
+  if (validateStep() && currentStep < steps.length - 1) {
+    currentStep++;
+    updateStep();
+  }
+}));
+
+prevBtns.forEach(btn => btn.addEventListener("click", () => {
+  if (currentStep > 0) {
+    currentStep--;
+    updateStep();
+  }
+}));
+
+// Image preview
+const imageInput = document.getElementById("image");
+const imagePreview = document.getElementById("imagePreview");
+imageInput.addEventListener("change", () => {
+  const file = imageInput.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      imagePreview.src = e.target.result;
+      imagePreview.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+// Form submit with modal validation
+const form = document.getElementById("multiStepForm");
+form.addEventListener("submit", e => {
+  e.preventDefault();
+  if (!validateStep()) return;
+
+  const listings = JSON.parse(localStorage.getItem("listings")) || [];
+  const newListing = {
+    id: Date.now(),
+    title: document.getElementById("title").value,
+    location: document.getElementById("Location").value,
+    street: document.getElementById("Street").value,
+    rooms: document.getElementById("rooms").value,
+    roomNumber: Number(document.getElementById("roomNumber").value),
+    price: Number(document.getElementById("price").value),
+    amenities: document.getElementById("amenities").value,
+    description: document.getElementById("description").value,
+    rules: document.getElementById("rules").value,
+    agentName: document.getElementById("agentName").value,
+    agentPhone: document.getElementById("agentPhone").value,
+    image: imagePreview.src
+  };
+  listings.push(newListing);
+  localStorage.setItem("listings", JSON.stringify(listings));
+  alert("Listing posted successfully!");
+  window.location.href = "index.html";
+});
+
   </script>
 
 </body>

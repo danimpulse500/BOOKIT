@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login | Book-It</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #0a7cff, #005bd1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .auth-box {
+      background: #fff;
+      padding: 30px;
+      width: 100%;
+      max-width: 360px;
+      border-radius: 10px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.2);
+      animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .auth-box h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #0a7cff;
+    }
+    .auth-box input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      font-size: 15px;
+    }
+    .auth-box input:focus { outline: none; border-color: #0a7cff; }
+    .auth-box button {
+      width: 100%;
+      padding: 12px;
+      background: #0a7cff;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .auth-box button:hover { background: #055ec2; }
+    .switch { text-align: center; margin-top: 12px; font-size: 14px; }
+    .switch a { color: #0a7cff; font-weight: 600; text-decoration: none; }
+    .switch a:hover { text-decoration: underline; }
+    .error { color: red; text-align: center; margin-bottom: 10px; }
+    .auth-box input {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 15px;
+  line-height: 1.4;          /* ✅ FIXES cut-off text */
+  height: 44px;              /* ✅ forces proper vertical space */
+  box-sizing: border-box;
+}
+
+  </style>
+  <style>
+    /* Additional styles can go here */
+    /* Mobile responsiveness */
+@media (max-width: 480px) {
+  body {
+    padding: 20px;
+  }
+
+  .auth-box {
+    padding: 22px;
+    border-radius: 12px;
+  }
+
+  .auth-box h2 {
+    font-size: 22px;
+  }
+
+  .auth-box input {
+    font-size: 14px;
+    padding: 11px;
+  }
+
+  .auth-box button {
+    font-size: 15px;
+    padding: 11px;
+  }
+
+  .switch {
+    font-size: 13px;
+  }
+}
+@media (max-width: 480px) {
+  .auth-box {
+    animation: fadeIn 0.35s ease;
+  }
+}
+@media (max-width: 480px) {
+  .auth-box input {
+    font-size: 14px;
+    height: 42px;
+    line-height: 1.4;
+  }
+}
+
+  </style>
+</head>
+<body>
+
+<div class="auth-box">
+  <h2>Login</h2>
+  <div class="error" id="errorMsg"></div>
+  <input type="email" id="email" placeholder="Email" required>
+  <input type="password" id="password" placeholder="Password" required>
+  <button onclick="login()">Login</button>
+
+  <div class="switch">
+    No account? <a href="signup.html">Sign up</a>
+  </div>
+</div>
+
+<script>
+  // 1️⃣ Initialize Supabase
+  const SUPABASE_URL = "https://sgwgnysdejtobrbcglke.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_ah6iNOPj5d1wdOveSypkhg_XnbIlIJ3";
+  const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // 2️⃣ Login function
+  async function login() {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const errorMsg = document.getElementById("errorMsg");
+
+    if (!email || !password) {
+      errorMsg.textContent = "Please enter email and password";
+      return;
+    }
+
+    // Sign in using Supabase Auth
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+
+    if (error) {
+      errorMsg.textContent = "Invalid email or password!";
+      console.error(error);
+      return;
+    }
+
+    // ✅ Login successful
+    // Supabase automatically stores the session (no localStorage needed)
+
+    // Optional: fetch extra user info from your 'users' table
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select("*")
+      .eq('email', email)
+      .single();
+
+    if (userError) {
+      console.error("Error fetching user data:", userError);
+      alert("Login successful, but failed to fetch user info.");
+    }
+
+    // Redirect to homepage
+    window.location.href = "index.html";
+  }
+
+  // 3️⃣ Check if user is already logged in
+  document.addEventListener("DOMContentLoaded", async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      // User already logged in, redirect to homepage
+      window.location.href = "index.html";
+    }
+  });
+</script>
+
+
+
+</body>
+</html>
