@@ -1,217 +1,518 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Book-It | Lodge or Hostel Details</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-    <script>
-  if (!localStorage.getItem("loggedInUser")) {
-    window.location.href = "login.html";
-  }
-</script>
-<style>
+  <style>
     /* DETAILS PAGE - AIRBNB STYLE */
-.details-card {
-  max-width: 900px;
-  margin: 50px auto;
-  padding : 30px;
-  background-color: #fff;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  line-height: 1.6;
-}
+    .details-card {
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 30px;
+      background-color: #fff;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+    }
 
-.details-card img {
-  width: 100%;
-  height: 400px;
-  object-fit: cover;
-  border-radius: 10px;
-  margin-bottom: 25px;
-}
+    .details-card img {
+      width: 100%;
+      height: 400px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 25px;
+    }
 
-.details-card h2 {
-  font-size: 32px;
-  font-weight: 700;
-  margin-bottom: 10px;
-  color: #222;
-}
+    .details-card h2 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #222;
+    }
 
-.details-card p {
-  font-size: 16px;
-  color: #555;
-  margin: 12px 0;
-}
+    .details-card p {
+      font-size: 16px;
+      color: #555;
+      margin: 12px 0;
+    }
 
-.details-card strong {
-  color: #222;
-}
+    .details-card strong {
+      color: #222;
+    }
 
-.details-card ul {
-  list-style: disc;
-  padding-left: 20px;
-  margin-bottom: 15px;
-  color: #555;
-}
+    .details-card ul {
+      list-style: disc;
+      padding-left: 20px;
+      margin-bottom: 15px;
+      color: #555;
+    }
 
-.details-card ul li {
-  margin-bottom: 6px;
-}
+    .details-card ul li {
+      margin-bottom: 6px;
+    }
 
-.whatsapp-btn {
-  display: block; /* makes it take full width of content area for centering */
-  width: fit-content; /* shrink to fit text */
-  margin: 20px auto 0 auto; /* top 20px, horizontally centered */
-  background-color: #000000;
-  color: #fff;
-  font-weight: 600;
-  padding: 12px 28px;
-  border-radius: 100px;
-  text-decoration: none;
-  transition: background-color 0.2s;
-}
+    .whatsapp-btn {
+      display: block;
+      width: fit-content;
+      margin: 20px auto 0 auto;
+      background-color: #000000;
+      color: #fff;
+      font-weight: 600;
+      padding: 12px 28px;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: background-color 0.2s;
+    }
 
-.whatsapp-btn:hover {
-  background-color: #333; /* optional hover effect */
-}
+    .whatsapp-btn:hover {
+      background-color: #333;
+    }
 
+    .whatsapp-btn:hover {
+      background-color: #1ebe5d;
+    }
 
-.whatsapp-btn:hover {
-  background-color: #1ebe5d;
-}
+    /* Loading and Error States */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      font-size: 18px;
+      color: #0a7cff;
+    }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .details-card {
-    padding: 20px;
-  }
+    .error {
+      text-align: center;
+      padding: 40px;
+      font-size: 18px;
+      color: #c62828;
+      background: #ffebee;
+      border-radius: 10px;
+      max-width: 900px;
+      margin: 50px auto;
+    }
 
-  .details-card img {
-    height: 250px;
-  }
+    /* Image Gallery */
+    .image-gallery {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+    }
 
-  .details-card h2 {
-    font-size: 24px;
-  }
+    .image-gallery img {
+      width: 150px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
 
-  .details-card p, .details-card ul li {
-    font-size: 14px;
-  }
-}
- 
- /* Classic spacing and ash dividers for better readability */
-.details-card {
-  line-height: 1.8; /* more breathing space between lines */
-  color: #333;
-}
+    .image-gallery img:hover {
+      transform: scale(1.05);
+    }
 
-.details-card p + p,
-.details-card ul + p {
-  border-top: 1px solid #eee; /* ash divider line */
-  padding-top: 15px;
-  margin-top: 15px;
-}
+    /* Responsive */
+    @media (max-width: 768px) {
+      .details-card {
+        padding: 20px;
+        margin: 20px;
+      }
 
-/* Amenities as stylish badges */
-.details-card ul {
-  list-style: none;
-  padding-left: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: 15px 0;
-}
+      .details-card img {
+        height: 250px;
+      }
 
-.details-card ul li {
-  background-color: #f8f8f8; /* soft light gray */
-  color: #333; /* darker text for better contrast */
-  padding: 8px 16px; /* slightly larger padding */
-  border-radius: 20px; /* pill-shaped badges */
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); /* subtle shadow for depth */
-  transition: transform 0.2s, box-shadow 0.2s;
-  cursor: default;
-}
+      .details-card h2 {
+        font-size: 24px;
+      }
 
-.details-card ul li:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* subtle hover pop */
-}
+      .details-card p,
+      .details-card ul li {
+        font-size: 14px;
+      }
 
+      .image-gallery {
+        flex-wrap: wrap;
+      }
 
-</style>
+      .image-gallery img {
+        width: calc(50% - 5px);
+        height: 120px;
+      }
+    }
+
+    /* Classic spacing and ash dividers */
+    .details-card {
+      line-height: 1.8;
+      color: #333;
+    }
+
+    .details-card p+p,
+    .details-card ul+p {
+      border-top: 1px solid #eee;
+      padding-top: 15px;
+      margin-top: 15px;
+    }
+
+    /* Amenities as stylish badges */
+    .amenities-list {
+      list-style: none;
+      padding-left: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 15px 0;
+    }
+
+    .amenities-list li {
+      background-color: #f8f8f8;
+      color: #333;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: default;
+    }
+
+    .amenities-list li:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Property Info Grid */
+    .property-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin: 25px 0;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 10px;
+    }
+
+    .info-item {
+      text-align: center;
+    }
+
+    .info-item .label {
+      display: block;
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .info-item .value {
+      display: block;
+      font-size: 20px;
+      font-weight: 700;
+      color: #0a7cff;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Authentication Check -->
+  <script>
+    if (!localStorage.getItem("loggedInUser")) {
+      window.location.href = "login.html";
+    }
+  </script>
+
   <!-- NAVBAR -->
 <header class="navbar">
   <a href="index.html" class="logo">
     <img src="logo.png" alt="Book-It Logo">
   </a>
 
-  <!-- DESKTOP NAV -->
-  <nav id="navMenu">
+  <!-- Desktop Menu -->
+  <nav class="menu-panel desktop-nav" id="navMenu">
     <a href="index.html">Home</a>
-    <a href="index.html">Browse</a>
+    <a href="contact.html">Contact/Support</a>
     <a href="post.html" id="postLink">Post Lodge</a>
+    <div class="user-area" id="userArea"></div>
   </nav>
 
-  <!-- USER AREA (Capsule injected by JS) -->
-  <div id="userArea"></div>
+  <!-- Mobile Menu Button -->
+  <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
 
-  <!-- MOBILE MENU BUTTON -->
-  <button id="mobileMenuBtn" class="mobile-menu-btn">☰</button>
+  <!-- Mobile Menu -->
+  <nav class="menu-panel mobile-nav" id="mobileNav"></nav>
 </header>
 
-<!-- MOBILE NAV DROPDOWN -->
-<div id="mobileNav" class="mobile-nav"></div>
 
+  <!-- MOBILE NAV DROPDOWN -->
+  <div id="mobileNav" class="mobile-nav"></div>
 
   <!-- LISTING DETAILS -->
   <section class="listing-details" id="listingDetailsContainer">
-    <!-- JS will inject content here -->
+    <div class="loading">Loading listing details...</div>
   </section>
 
   <footer class="footer">
     <p>© 2025 Book-It. Student housing made easy.</p>
   </footer>
-
-   <script src="js/data.js"></script>
     <script src="js/main.js"></script>
 
-<script>
-const container = document.getElementById("listingDetailsContainer");
-const selectedId = Number(localStorage.getItem("selectedListing"));
+  <script>
+    // API Configuration
+    const API_BASE_URL = "https://bookit-api-tpvz.onrender.com";
 
-// Read from localStorage if exists, otherwise fallback to data.js
-const listingsDataToUse = JSON.parse(localStorage.getItem("listings")) || listingsData;
+    // Get listing ID from URL or localStorage
+    function getListingId() {
+      // Try to get from URL query parameter first
+      const urlParams = new URLSearchParams(window.location.search);
+      const idFromUrl = urlParams.get('id');
 
-const listing = listingsDataToUse.find(item => item.id === selectedId);
+      // Fallback to localStorage
+      const idFromStorage = localStorage.getItem("selectedListing");
 
-if (!listing) {
-  container.innerHTML = "<p>Listing not found.</p>";
-} else {
-  const whatsappLink = `https://wa.me/234${listing.agentPhone.slice(1)}?text=Hello%20I'm%20interested%20in%20${listing.title}`;
-  container.innerHTML = `
-    <div class="details-card">
-      <img src="${listing.image}">
-      <h2>${listing.title}</h2>
-      <p><strong>Location:</strong> ${listing.location}</p>
-      <p><strong>Price:</strong> ₦${listing.price.toLocaleString()}</p>
-      <p><strong>Room Type:</strong> ${listing.rooms}</p>
-      <p><strong>Description:</strong><br>${listing.description}</p>
-      <p><strong>Rules:</strong><br>${listing.rules}</p>
-      <p><strong>Amenities:</strong></p>
-      <ul>${listing.amenities.map(a => `<li>${a}</li>`).join("")}</ul>
-      <p><strong>Agent:</strong> ${listing.agentName}</p>
-      <a href="${whatsappLink}" target="_blank" class="whatsapp-btn">📞 Contact Agent on WhatsApp</a>
-    </div>
-  `;
-}
-</script>
+      return idFromUrl || idFromStorage;
+    }
 
+    // Format price with commas
+    function formatPrice(price) {
+      return parseFloat(price).toLocaleString('en-NG', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
 
+    // Fetch listing details from API
+    async function fetchListingDetails(listingId) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/listings/${listingId}/`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch listing: ${response.status} ${response.statusText}`);
+        }
+
+        const listing = await response.json();
+        return listing;
+      } catch (error) {
+        console.error('Error fetching listing:', error);
+        throw error;
+      }
+    }
+
+    // Fetch agent details (if available in your API)
+    async function fetchAgentDetails(agentId) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/users/${agentId}/`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          }
+        });
+
+        if (response.ok) {
+          const agent = await response.json();
+          return agent;
+        }
+        return null; // Agent endpoint might not exist
+      } catch (error) {
+        console.error('Error fetching agent:', error);
+        return null;
+      }
+    }
+
+    // Generate WhatsApp link
+    function generateWhatsAppLink(phoneNumber, listingTitle) {
+      // Clean phone number - remove any non-digit characters
+      const cleanPhone = phoneNumber.replace(/\D/g, '');
+      // Ensure it starts with country code (assuming Nigeria +234)
+      const whatsappNumber = cleanPhone.startsWith('234') ? cleanPhone : '234' + cleanPhone.slice(-10);
+
+      const message = `Hello! I'm interested in your property: ${listingTitle}`;
+      const encodedMessage = encodeURIComponent(message);
+
+      return `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+    }
+
+    // Render listing details
+    async function renderListingDetails() {
+      const container = document.getElementById("listingDetailsContainer");
+      const listingId = getListingId();
+
+      if (!listingId) {
+        container.innerHTML = '<div class="error">No listing selected. Please go back to browse listings.</div>';
+        return;
+      }
+
+      try {
+        // Show loading state
+        container.innerHTML = '<div class="loading">Loading listing details...</div>';
+
+        // Fetch listing data
+        const listing = await fetchListingDetails(listingId);
+
+        // Try to fetch agent details if created_by exists
+        let agentData = null;
+        if (listing.created_by) {
+          agentData = await fetchAgentDetails(listing.created_by);
+        }
+
+        // Generate WhatsApp link (use agent phone if available, otherwise placeholder)
+        const agentPhone = agentData?.phone_number || '+2348000000000';
+        const whatsappLink = generateWhatsAppLink(agentPhone, listing.title);
+
+        // Create image gallery HTML
+        let galleryHTML = '';
+        if (listing.images && listing.images.length > 0) {
+          galleryHTML = `
+            <div class="image-gallery">
+              ${listing.images.map(img =>
+            `<img src="${img.image}" alt="Property image" onclick="openImageModal('${img.image}')">`
+          ).join('')}
+            </div>
+          `;
+        }
+
+        // Create amenities list (if available in your data structure)
+        let amenitiesHTML = '';
+        if (listing.amenities) {
+          amenitiesHTML = `
+            <p><strong>Amenities:</strong></p>
+            <ul class="amenities-list">
+              ${listing.amenities.map(amenity => `<li>${amenity}</li>`).join('')}
+            </ul>
+          `;
+        } else if (listing.description) {
+          // Extract potential amenities from description
+          const commonAmenities = ['WiFi', 'Electricity', 'Water', 'Security', 'Parking', 'Furnished', 'Kitchen'];
+          const foundAmenities = commonAmenities.filter(amenity =>
+            listing.description.toLowerCase().includes(amenity.toLowerCase())
+          );
+
+          if (foundAmenities.length > 0) {
+            amenitiesHTML = `
+              <p><strong>Amenities:</strong></p>
+              <ul class="amenities-list">
+                ${foundAmenities.map(amenity => `<li>${amenity}</li>`).join('')}
+              </ul>
+            `;
+          }
+        }
+
+        // Render the listing details
+        container.innerHTML = `
+          <div class="details-card">
+            ${listing.cover_image_url ? `<img src="${listing.cover_image_url}" alt="${listing.title}">` : ''}
+            ${galleryHTML}
+            
+            <h2>${listing.title}</h2>
+            
+            <div class="property-info">
+              <div class="info-item">
+                <span class="label">Price</span>
+                <span class="value">₦${formatPrice(listing.price)}</span>
+              </div>
+              ${listing.bedrooms ? `
+              <div class="info-item">
+                <span class="label">Bedrooms</span>
+                <span class="value">${listing.bedrooms}</span>
+              </div>` : ''}
+              ${listing.bathrooms ? `
+              <div class="info-item">
+                <span class="label">Bathrooms</span>
+                <span class="value">${listing.bathrooms}</span>
+              </div>` : ''}
+              ${listing.rooms ? `
+              <div class="info-item">
+                <span class="label">Rooms</span>
+                <span class="value">${listing.rooms}</span>
+              </div>` : ''}
+            </div>
+            
+            <p><strong>Location:</strong> ${listing.location}</p>
+            
+            ${listing.description ? `<p><strong>Description:</strong><br>${listing.description}</p>` : ''}
+            
+            ${amenitiesHTML}
+            
+            ${listing.rules ? `<p><strong>Rules:</strong><br>${listing.rules}</p>` : ''}
+            
+            ${agentData ? `
+              <p><strong>Agent:</strong> ${agentData.full_name || 'Agent'}</p>
+              ${agentData.phone_number ? `<p><strong>Phone:</strong> ${agentData.phone_number}</p>` : ''}
+              ${agentData.email ? `<p><strong>Email:</strong> ${agentData.email}</p>` : ''}
+            ` : ''}
+            
+            <p><strong>Posted:</strong> ${new Date(listing.created_at).toLocaleDateString('en-NG', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })}</p>
+            
+            <a href="${whatsappLink}" target="_blank" class="whatsapp-btn">
+              📞 Contact Agent on WhatsApp
+            </a>
+          </div>
+        `;
+
+      } catch (error) {
+        console.error('Error:', error);
+        container.innerHTML = `
+          <div class="error">
+            <h3>Oops! Something went wrong</h3>
+            <p>${error.message}</p>
+            <p>Please try again later or go back to the <a href="index.html">home page</a>.</p>
+          </div>
+        `;
+      }
+    }
+
+    // Image modal function (optional enhancement)
+    function openImageModal(imageUrl) {
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        cursor: pointer;
+      `;
+
+      const img = document.createElement('img');
+      img.src = imageUrl;
+      img.style.cssText = `
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+      `;
+
+      modal.appendChild(img);
+      modal.onclick = () => document.body.removeChild(modal);
+
+      document.body.appendChild(modal);
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', renderListingDetails);
+
+    // Handle browser back/forward navigation
+    window.addEventListener('popstate', renderListingDetails);
+  </script>
 </body>
+
 </html>

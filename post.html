@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Book-It | Post Lodge</title>
@@ -17,12 +18,15 @@
       flex-direction: column;
       min-height: 100vh;
     }
-    header.navbar, footer.footer {
+
+    header.navbar,
+    footer.footer {
       flex-shrink: 0;
       padding: 15px 30px;
       background: #fff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     }
+
     .form-wrapper {
       flex: 1;
       display: flex;
@@ -40,7 +44,7 @@
       max-width: 500px;
       max-height: 80vh;
       padding: 30px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -52,6 +56,7 @@
       overflow-y: auto;
       max-height: calc(80vh - 80px);
     }
+
     .form-step.active {
       display: flex;
     }
@@ -69,7 +74,9 @@
       color: #333;
     }
 
-    input, select, textarea {
+    input,
+    select,
+    textarea {
       width: 100%;
       padding: 12px;
       margin-top: 6px;
@@ -79,6 +86,7 @@
       outline: none;
       box-sizing: border-box;
     }
+
     textarea {
       resize: vertical;
       min-height: 80px;
@@ -89,6 +97,7 @@
       justify-content: space-between;
       margin-top: 25px;
     }
+
     .buttons button {
       padding: 12px 20px;
       border: none;
@@ -97,10 +106,24 @@
       font-size: 15px;
       font-weight: 600;
     }
-    .prev-btn { background: #ddd; color: #333; }
-    .prev-btn:hover { background: #ccc; }
-    .next-btn { background: linear-gradient(135deg, #130569, #2b1bbf); color: #fff; }
-    .next-btn:hover { background: linear-gradient(135deg, #130569, #2b1bbf); }
+
+    .prev-btn {
+      background: #ddd;
+      color: #333;
+    }
+
+    .prev-btn:hover {
+      background: #ccc;
+    }
+
+    .next-btn {
+      background: linear-gradient(135deg, #130569, #2b1bbf);
+      color: #fff;
+    }
+
+    .next-btn:hover {
+      background: linear-gradient(135deg, #130569, #2b1bbf);
+    }
 
     /* PROGRESS BAR */
     .progress-container {
@@ -111,6 +134,7 @@
       overflow: hidden;
       margin-bottom: 20px;
     }
+
     .progress-bar {
       height: 100%;
       width: 0%;
@@ -126,64 +150,155 @@
       border-radius: 8px;
       display: none;
     }
+
+    /* LOADING AND MESSAGE STYLES */
+    .loading {
+      display: none;
+      text-align: center;
+      color: #0a7cff;
+      margin: 10px 0;
+    }
+
+    .error-message {
+      display: none;
+      background: #ffebee;
+      color: #c62828;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+
+    .success-message {
+      display: none;
+      background: #e8f5e9;
+      color: #2e7d32;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+
     /* MODAL STYLES */
-.modal {
-  display: none; /* Hidden by default */
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0,0,0,0.5);
-}
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
 
-.modal-content {
-  background-color: #fff;
-  margin: 15% auto;
-  padding: 20px;
-  border-radius: 12px;
-  max-width: 400px;
-  text-align: center;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-}
+    .modal-content {
+      background-color: #fff;
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
 
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 24px;
-  font-weight: bold;
-  cursor: pointer;
-}
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
-.close:hover {
-  color: #333;
-}
-</style>
+    .close:hover {
+      color: #333;
+    }
 
+    /* Multiple image upload */
+    .image-upload-container {
+      margin-top: 10px;
+    }
+
+    .image-preview-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .image-preview-item {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid #ddd;
+    }
+
+    .remove-image {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #dc3545;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      text-align: center;
+      line-height: 18px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .image-item {
+      position: relative;
+    }
+
+    /* Authentication warning */
+    .auth-warning {
+      background: #fff3cd;
+      color: #856404;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-align: center;
+      font-size: 14px;
+      border: 1px solid #ffeaa7;
+    }
+
+    .auth-warning a {
+      color: #0a7cff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .auth-warning a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
+
 <body>
 
-<header class="navbar">
-  <a href="index.html" class="logo">
-    <img src="logo.png" alt="Book-It Logo">
-  </a>
+  <header class="navbar">
+    <a href="index.html" class="logo">
+      <img src="logo.png" alt="Book-It Logo">
+    </a>
 
-  <!-- Desktop Menu -->
-  <nav class="menu-panel desktop-nav" id="navMenu">
-    <a href="index.html">Home</a>
-    <a href="contact.html">Contact/Support</a>
-    <a href="post.html" id="postLink">Post Lodge</a>
-    <div class="user-area" id="userArea"></div> 
-  </nav>
+    <!-- Desktop Menu -->
+    <nav class="menu-panel desktop-nav" id="navMenu">
+      <a href="index.html">Home</a>
+      <a href="contact.html">Contact/Support</a>
+      <a href="post.html" id="postLink">Post Lodge</a>
+      <div class="user-area" id="userArea"></div>
+    </nav>
 
-  <!-- Mobile Menu Button -->
-  <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
 
-  <!-- Mobile Menu -->
-  <nav class="menu-panel mobile-nav" id="mobileNav"></nav>
-</header>
+    <!-- Mobile Menu -->
+    <nav class="menu-panel mobile-nav" id="mobileNav"></nav>
+  </header>
 
   <div class="form-wrapper">
     <form id="multiStepForm" class="multi-step-form">
@@ -192,95 +307,100 @@
         <div id="progressBar" class="progress-bar"></div>
       </div>
 
-            <!-- Step 1: Basic Info -->
-            <div class="form-step active">
-              <h2>Basic Info</h2>
-              <label for="title">Lodge Name</label>
-              <input type="text" id="title" required>
+      <!-- Authentication Warning -->
+      <div id="authWarning" class="auth-warning" style="display: none;">
+        <strong>⚠️ Agent Account Required</strong><br>
+        You need to be logged in as an agent to post listings.
+        <a href="signup.html">Sign up as an agent</a> or <a href="login.html">login</a>.
+      </div>
 
-              <label for="Location">Location</label>
-              <select id="Location" required>
-                <option value="">Select Location</option>
-                <option value="Ifite-Up school">Ifite-Up School</option>
-                <option value="Ifite-Down school">Ifite-Down School</option>
-                <option value="Amansea">Amansea</option>
-                <option value="Temp Site">Temp Site</option>
-                <option value="Aroma">Aroma</option>
-              </select>
+      <!-- Error and Success Messages -->
+      <div class="error-message" id="error-message"></div>
+      <div class="success-message" id="success-message"></div>
+      <div class="loading" id="loading">Uploading listing...</div>
 
-              <label for="Street">Street</label>
-              <input type="text" id="Street" required>
+      <!-- Step 1: Basic Info -->
+      <div class="form-step active">
+        <h2>Basic Info</h2>
+        <label for="title">Lodge Name</label>
+        <input type="text" id="title" required>
 
-              <div class="buttons">
-                <span></span>
-                <button type="button" class="next-btn">Next</button>
-              </div>
-            </div>
+        <label for="location">Location</label>
+        <select id="location" required>
+          <option value="">Select Location</option>
+          <option value="Ifite-Up school">Ifite-Up School</option>
+          <option value="Ifite-Down school">Ifite-Down School</option>
+          <option value="Amansea">Amansea</option>
+          <option value="Temp Site">Temp Site</option>
+          <option value="Aroma">Aroma</option>
+        </select>
 
-            <!-- Step 2: Rooms & Amenities -->
-            <div class="form-step">
-              <h2>Rooms & Amenities</h2>
+        <label for="bedrooms">Number of Bedrooms</label>
+        <input type="number" id="bedrooms" min="1" required>
 
-              <label for="rooms">Room Type</label>
-              <select id="rooms" required>
-                <option value="">Select Room Type</option>
-                <option value="Self-contained">Self-contained</option>
-                <option value="Single Room">Single Room</option>
-                <option value="Shared Room">Shared Room</option>
-              </select>
+        <label for="bathrooms">Number of Bathrooms</label>
+        <input type="number" id="bathrooms" min="1" required>
 
-              <label for="roomNumber">Number of Rooms</label>
-              <input type="number" id="roomNumber" min="1" required>
+        <div class="buttons">
+          <span></span>
+          <button type="button" class="next-btn">Next</button>
+        </div>
+      </div>
 
-              <label for="price">Annual Price (₦)</label>
-              <input type="number" id="price" min="1000" required>
+      <!-- Step 2: Details -->
+      <div class="form-step">
+        <h2>Details</h2>
 
-              <label for="amenities">Amenities (comma separated)</label>
-              <input type="text" id="amenities" placeholder="Water, Light, Security, WiFi" required>
+        <label for="price">Annual Price (₦)</label>
+        <input type="number" id="price" min="1000" step="0.01" required>
 
-              <label for="description">Description</label>
-              <textarea id="description" placeholder="Describe the lodge" required></textarea>
+        <label for="description">Description</label>
+        <textarea id="description" placeholder="Describe the lodge (features, condition, surroundings)"
+          required></textarea>
 
-              <label for="rules">Rules</label>
-              <textarea id="rules" placeholder="e.g. No loud music after 10pm" required></textarea>
+        <label for="amenities">Amenities (comma separated)</label>
+        <textarea id="amenities" placeholder="Water, Light, Security, WiFi, Parking, Kitchen, etc."></textarea>
 
-              <div class="buttons">
-                <button type="button" class="prev-btn">Previous</button>
-                <button type="button" class="next-btn">Next</button>
-              </div>
-            </div>
+        <label for="rules">Rules (optional)</label>
+        <textarea id="rules" placeholder="e.g. No loud music after 10pm"></textarea>
 
-            <!-- Step 3: Agent & Image -->
-            <div class="form-step">
-              <h2>Agent & Image</h2>
+        <div class="buttons">
+          <button type="button" class="prev-btn">Previous</button>
+          <button type="button" class="next-btn">Next</button>
+        </div>
+      </div>
 
-              <label for="agentName">Agent Name</label>
-              <input type="text" id="agentName" required>
+      <!-- Step 3: Images -->
+      <div class="form-step">
+        <h2>Images</h2>
 
-              <label for="agentPhone">Agent WhatsApp Number</label>
-              <input type="tel" id="agentPhone" placeholder="08012345678" required pattern="\d{10,15}">
+        <label for="images">Upload Images (You can select multiple)</label>
+        <input type="file" id="images" accept="image/*" multiple>
 
-              <label for="image">Upload Image</label>
-              <input type="file" id="listingImage" accept="image/*">
-              <img id="imagePreview" class="image-preview" src="#" alt="Image Preview">
+        <div class="image-upload-container">
+          <div class="image-preview-container" id="imagePreviewContainer"></div>
+        </div>
 
-              <div class="buttons">
-                <button type="button" class="prev-btn">Previous</button>
-                <button type="submit" class="next-btn">Submit</button>
-              </div>
-            </div>
+        <p style="font-size: 12px; color: #666; margin-top: 10px;">
+          Tip: First image will be used as the cover photo. Upload clear photos of the property.
+        </p>
 
+        <div class="buttons">
+          <button type="button" class="prev-btn">Previous</button>
+          <button type="submit" class="next-btn">Submit Listing</button>
+        </div>
+      </div>
 
     </form>
   </div>
-<!-- Validation Modal -->
-<div id="validationModal" class="modal">
-  <div class="modal-content">
-    <span id="closeModal" class="close">&times;</span>
-    <p>Please fill all required fields in this step!</p>
-  </div>
-</div>
 
+  <!-- Validation Modal -->
+  <div id="validationModal" class="modal">
+    <div class="modal-content">
+      <span id="closeModal" class="close">&times;</span>
+      <p>Please fill all required fields in this step!</p>
+    </div>
+  </div>
 
   <footer class="footer">
     <p>© 2025 Book-It. Student housing made easy.</p>
@@ -288,93 +408,410 @@
 
   <script src="js/main.js"></script>
   <script>
-   const steps = document.querySelectorAll(".form-step");
-const nextBtns = document.querySelectorAll(".next-btn");
-const prevBtns = document.querySelectorAll(".prev-btn");
-const progressBar = document.getElementById("progressBar");
-let currentStep = 0;
+    // API Configuration
+    const API_BASE_URL = "https://bookit-api-tpvz.onrender.com";
+    const LISTINGS_URL = `${API_BASE_URL}/api/listings/`;
 
-// Modal elements
-const modal = document.getElementById("validationModal");
-const closeModal = document.getElementById("closeModal");
-closeModal.onclick = () => modal.style.display = "none";
-window.onclick = e => { if (e.target == modal) modal.style.display = "none"; }
+    // Check authentication on page load
+    function checkAuthentication() {
+      const loggedInUser = localStorage.getItem("loggedInUser");
+      const userRole = localStorage.getItem("userRole");
+      const accessToken = localStorage.getItem("accessToken");
+      const authWarning = document.getElementById("authWarning");
 
-function updateStep() {
-  steps.forEach((step, index) => step.classList.toggle("active", index === currentStep));
-  progressBar.style.width = ((currentStep + 1) / steps.length * 100) + "%";
-}
+      console.log("Auth check:", { loggedInUser, userRole, accessToken });
 
-// Check required fields in current step
-function validateStep() {
-  const inputs = steps[currentStep].querySelectorAll("input, select, textarea");
-  for (let input of inputs) {
-    if (input.hasAttribute("required") && !input.value) {
-      modal.style.display = "block";
-      return false;
+      if (!loggedInUser || userRole?.toLowerCase() !== "agent" || !accessToken) {
+        authWarning.style.display = "block";
+        // Disable form submission
+        document.querySelectorAll('.next-btn, .prev-btn').forEach(btn => {
+          btn.disabled = true;
+          btn.style.opacity = "0.5";
+          btn.style.cursor = "not-allowed";
+        });
+        return false;
+      }
+
+      authWarning.style.display = "none";
+      return true;
     }
-  }
-  return true;
-}
 
-nextBtns.forEach(btn => btn.addEventListener("click", () => {
-  if (validateStep() && currentStep < steps.length - 1) {
-    currentStep++;
-    updateStep();
-  }
-}));
+    // Initialize authentication check
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!checkAuthentication()) {
+        return;
+      }
+    });
 
-prevBtns.forEach(btn => btn.addEventListener("click", () => {
-  if (currentStep > 0) {
-    currentStep--;
-    updateStep();
-  }
-}));
+    const steps = document.querySelectorAll(".form-step");
+    const nextBtns = document.querySelectorAll(".next-btn");
+    const prevBtns = document.querySelectorAll(".prev-btn");
+    const progressBar = document.getElementById("progressBar");
+    let currentStep = 0;
 
-// Image preview
-const imageInput = document.getElementById("image");
-const imagePreview = document.getElementById("imagePreview");
-imageInput.addEventListener("change", () => {
-  const file = imageInput.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      imagePreview.src = e.target.result;
-      imagePreview.style.display = "block";
+    // Message elements
+    const errorMessage = document.getElementById("error-message");
+    const successMessage = document.getElementById("success-message");
+    const loadingElement = document.getElementById("loading");
+
+    // Modal elements
+    const modal = document.getElementById("validationModal");
+    const closeModal = document.getElementById("closeModal");
+    closeModal.onclick = () => modal.style.display = "none";
+    window.onclick = e => { if (e.target == modal) modal.style.display = "none"; }
+
+    // Image preview array
+    let uploadedImages = [];
+
+    function updateStep() {
+      steps.forEach((step, index) => step.classList.toggle("active", index === currentStep));
+      progressBar.style.width = ((currentStep + 1) / steps.length * 100) + "%";
+    }
+
+    // Check required fields in current step
+    function validateStep() {
+      const inputs = steps[currentStep].querySelectorAll("input, select, textarea");
+      for (let input of inputs) {
+        if (input.hasAttribute("required") && !input.value.trim()) {
+          modal.style.display = "block";
+          return false;
+        }
+      }
+      return true;
+    }
+
+    nextBtns.forEach(btn => btn.addEventListener("click", () => {
+      if (validateStep() && currentStep < steps.length - 1) {
+        currentStep++;
+        updateStep();
+      }
+    }));
+
+    prevBtns.forEach(btn => btn.addEventListener("click", () => {
+      if (currentStep > 0) {
+        currentStep--;
+        updateStep();
+      }
+    }));
+
+    // Multiple image upload with preview
+    const imagesInput = document.getElementById("images");
+    const imagePreviewContainer = document.getElementById("imagePreviewContainer");
+
+    imagesInput.addEventListener("change", (e) => {
+      const files = Array.from(e.target.files);
+
+      // Clear previous previews
+      imagePreviewContainer.innerHTML = "";
+      uploadedImages = [];
+
+      files.forEach((file, index) => {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          showError(`File ${file.name} is not an image. Please select image files only.`);
+          return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          showError(`File ${file.name} is too large. Maximum size is 5MB.`);
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          // Create preview item
+          const imageItem = document.createElement('div');
+          imageItem.className = 'image-item';
+          imageItem.innerHTML = `
+            <img src="${e.target.result}" class="image-preview-item" alt="Preview ${index + 1}">
+            <span class="remove-image" onclick="removeImage(${index})">×</span>
+          `;
+          imagePreviewContainer.appendChild(imageItem);
+
+          // Store file data
+          uploadedImages.push({
+            file: file,
+            dataUrl: e.target.result,
+            name: file.name
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    // Remove image from preview
+    window.removeImage = function (index) {
+      uploadedImages.splice(index, 1);
+      renderImagePreviews();
     };
-    reader.readAsDataURL(file);
+
+    // Re-render image previews
+    function renderImagePreviews() {
+      imagePreviewContainer.innerHTML = "";
+      uploadedImages.forEach((img, index) => {
+        const imageItem = document.createElement('div');
+        imageItem.className = 'image-item';
+        imageItem.innerHTML = `
+          <img src="${img.dataUrl}" class="image-preview-item" alt="Preview ${index + 1}">
+          <span class="remove-image" onclick="removeImage(${index})">×</span>
+        `;
+        imagePreviewContainer.appendChild(imageItem);
+      });
+    }
+
+    // Show/hide messages
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.style.display = "block";
+      successMessage.style.display = "none";
+    }
+
+    function showSuccess(message) {
+      successMessage.textContent = message;
+      successMessage.style.display = "block";
+      errorMessage.style.display = "none";
+    }
+
+    function hideMessages() {
+      errorMessage.style.display = "none";
+      successMessage.style.display = "none";
+    }
+
+    function setLoading(isLoading) {
+      loadingElement.style.display = isLoading ? "block" : "none";
+      // Disable all submit buttons during loading
+      document.querySelectorAll('.next-btn[type="submit"]').forEach(btn => {
+        btn.disabled = isLoading;
+      });
+    }
+
+    // Convert images to base64 for API
+    async function convertImagesToBase64(images) {
+      const base64Images = [];
+      for (const img of images) {
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(img.file);
+        });
+        // Extract base64 data (remove data URL prefix)
+        const base64Data = base64.split(',')[1];
+        base64Images.push(base64Data);
+      }
+      return base64Images;
+    }
+
+    // Try to refresh token if expired
+  async function refreshTokenIfNeeded() {
+    const refreshToken = localStorage.getItem("refreshToken");
+    if (!refreshToken) return null;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/token/refresh/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: refreshToken })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem("accessToken", data.access);
+        return data.access;
+      }
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+    }
+    return null;
   }
-});
 
-// Form submit with modal validation
-const form = document.getElementById("multiStepForm");
-form.addEventListener("submit", e => {
-  e.preventDefault();
-  if (!validateStep()) return;
+    // Form submit handler
+    const form = document.getElementById("multiStepForm");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      let accessToken = localStorage.getItem("accessToken");
 
-  const listings = JSON.parse(localStorage.getItem("listings")) || [];
-  const newListing = {
-    id: Date.now(),
-    title: document.getElementById("title").value,
-    location: document.getElementById("Location").value,
-    street: document.getElementById("Street").value,
-    rooms: document.getElementById("rooms").value,
-    roomNumber: Number(document.getElementById("roomNumber").value),
-    price: Number(document.getElementById("price").value),
-    amenities: document.getElementById("amenities").value,
-    description: document.getElementById("description").value,
-    rules: document.getElementById("rules").value,
-    agentName: document.getElementById("agentName").value,
-    agentPhone: document.getElementById("agentPhone").value,
-    image: imagePreview.src
-  };
-  listings.push(newListing);
-  localStorage.setItem("listings", JSON.stringify(listings));
-  alert("Listing posted successfully!");
-  window.location.href = "index.html";
-});
+    if (!accessToken) {
+      accessToken = await refreshTokenIfNeeded();
+      if (!accessToken) {
+        showError("Session expired. Please login again.");
+        return;
+      }
+    }
 
+
+      // Check authentication again before submitting
+      if (!checkAuthentication()) {
+        showError("Please login as an agent to post listings.");
+        return;
+      }
+
+      if (!validateStep()) {
+        return;
+      }
+
+      // Check if at least one image is uploaded
+      if (uploadedImages.length === 0) {
+        showError("Please upload at least one image of the property.");
+        return;
+      }
+
+      hideMessages();
+      setLoading(true);
+
+      try {
+        // Get form data
+        const title = document.getElementById("title").value.trim();
+        const location = document.getElementById("location").value;
+        const bedrooms = parseInt(document.getElementById("bedrooms").value);
+        const bathrooms = parseInt(document.getElementById("bathrooms").value);
+        const price = parseFloat(document.getElementById("price").value);
+        const description = document.getElementById("description").value.trim();
+        const amenities = document.getElementById("amenities").value.trim();
+        const rules = document.getElementById("rules").value.trim();
+
+        // Get access token
+        let accessToken = localStorage.getItem("accessToken");
+
+        // Try to refresh token if needed
+        if (!accessToken) {
+          accessToken = await refreshTokenIfNeeded();
+          if (!accessToken) {
+            throw new Error("Authentication required. Please login again.");
+          }
+        }
+
+        // Convert images to base64
+        console.log("Converting images to base64...");
+        const base64Images = await convertImagesToBase64(uploadedImages);
+        console.log(`Converted ${base64Images.length} images`);
+
+      // Prepare FormData
+        const formData = new FormData();
+        formData.append("title", title);
+        formData.append("description", description);
+        formData.append("price", price.toFixed(2));
+        formData.append("location", location);
+        formData.append("bedrooms", bedrooms);
+        formData.append("bathrooms", bathrooms);
+
+        // if (amenities) {
+        //   formData.append("amenities", amenities.split(',').map(a => a.trim()).filter(a => a).join(','));
+        // }
+
+        // if (rules) {
+        //   formData.append("rules", rules);
+        // }
+
+        // Append images as files (not base64!)
+        uploadedImages.forEach(img => {
+          formData.append("uploaded_images", img.file); // <--- key must match API field
+        });
+
+        console.log("Sending request to:", LISTINGS_URL);
+        console.log("Number of images:", uploadedImages.length);
+
+        // Send POST request with FormData
+        const response = await fetch(LISTINGS_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`, // DO NOT set Content-Type here
+          },
+          body: formData
+        });
+
+        console.log("Response status:", response.status);
+
+        // Try to parse response
+        let data;
+        try {
+          const text = await response.text();
+          console.log("Response text:", text.substring(0, 500));
+          data = text ? JSON.parse(text) : {};
+        } catch (parseError) {
+          console.error("Error parsing response:", parseError);
+          throw new Error(`Server returned: ${response.status} ${response.statusText}`);
+        }
+
+        if (!response.ok) {
+          // Handle errors
+          let errorMsg = "Failed to create listing. ";
+
+          if (response.status === 400) {
+            if (data.errors) {
+              Object.keys(data.errors).forEach(key => {
+                errorMsg += `${key}: ${Array.isArray(data.errors[key]) ? data.errors[key].join(', ') : data.errors[key]} `;
+              });
+            } else if (data.detail) {
+              errorMsg += data.detail;
+            } else if (data.non_field_errors) {
+              errorMsg += data.non_field_errors.join(', ');
+            } else {
+              errorMsg += "Validation error. Please check your input.";
+            }
+          } else if (response.status === 401) {
+            // Token might be expired, try to refresh
+            const newToken = await refreshTokenIfNeeded();
+            if (newToken) {
+              showError("Session expired. Please try submitting again.");
+            } else {
+              errorMsg = "Authentication required. Please login again as an agent.";
+            }
+          } else if (response.status === 403) {
+            errorMsg = "You don't have permission to create listings. Please ensure you're registered as an agent.";
+          } else if (response.status === 415) {
+            errorMsg = "Unsupported media type. Please check your image formats (JPEG, PNG recommended).";
+          } else {
+            errorMsg += `Server returned: ${response.status} ${response.statusText}`;
+          }
+
+          throw new Error(errorMsg);
+        }
+
+        // Success
+        console.log("Listing created successfully:", data);
+        showSuccess("Listing posted successfully! Redirecting to homepage...");
+
+        // Clear form
+        form.reset();
+        uploadedImages = [];
+        imagePreviewContainer.innerHTML = "";
+
+        // Redirect after 2 seconds
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 2000);
+
+      } catch (err) {
+        console.error("Error creating listing:", err);
+
+        let errorMessage = err.message || "Something went wrong while creating the listing.";
+
+        // Check for CORS errors
+        if (err.name === 'TypeError' && err.message.includes('Failed to fetch')) {
+          errorMessage = "Cannot connect to the server. Please check your internet connection and try again.";
+        }
+
+        showError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // Initialize
+    updateStep();
+
+    // Debug: Log current user info
+    console.log("Current user info:", {
+      loggedIn: localStorage.getItem("loggedInUser"),
+      role: localStorage.getItem("userRole"),
+      hasToken: !!localStorage.getItem("accessToken"),
+      userName: localStorage.getItem("userName"),
+      userEmail: localStorage.getItem("userEmail")
+    });
   </script>
 
 </body>
+
 </html>

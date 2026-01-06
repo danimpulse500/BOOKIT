@@ -1,47 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Login | Book-It</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
   <style>
-    body {
+    * {
+      box-sizing: border-box;
       font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
       background: linear-gradient(135deg, #0a7cff, #005bd1);
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      margin: 0;
+      padding: 20px;
     }
+
     .auth-box {
       background: #fff;
-      padding: 30px;
       width: 100%;
-      max-width: 360px;
+      max-width: 380px;
+      padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 12px 30px rgba(0,0,0,.2);
-      animation: fadeIn 0.4s ease;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      animation: slideUp 0.5s ease;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(15px); }
-      to { opacity: 1; transform: translateY(0); }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
+
     .auth-box h2 {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       color: #0a7cff;
     }
+
     .auth-box input {
       width: 100%;
       padding: 12px;
       margin-bottom: 15px;
-      border-radius: 6px;
       border: 1px solid #ddd;
+      border-radius: 6px;
       font-size: 15px;
     }
-    .auth-box input:focus { outline: none; border-color: #0a7cff; }
+
+    .auth-box input:focus {
+      outline: none;
+      border-color: #0a7cff;
+    }
+
     .auth-box button {
       width: 100%;
       padding: 12px;
@@ -51,145 +73,291 @@
       border-radius: 6px;
       font-size: 16px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: background 0.3s;
     }
-    .auth-box button:hover { background: #055ec2; }
-    .switch { text-align: center; margin-top: 12px; font-size: 14px; }
-    .switch a { color: #0a7cff; font-weight: 600; text-decoration: none; }
-    .switch a:hover { text-decoration: underline; }
-    .error { color: red; text-align: center; margin-bottom: 10px; }
-    .auth-box input {
-  width: 100%;
-  padding: 12px 14px;
-  margin-bottom: 15px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  font-size: 15px;
-  line-height: 1.4;          /* ✅ FIXES cut-off text */
-  height: 44px;              /* ✅ forces proper vertical space */
-  box-sizing: border-box;
-}
 
-  </style>
-  <style>
-    /* Additional styles can go here */
-    /* Mobile responsiveness */
-@media (max-width: 480px) {
-  body {
-    padding: 20px;
-  }
+    .auth-box button:hover {
+      background: #055ec2;
+    }
 
-  .auth-box {
-    padding: 22px;
-    border-radius: 12px;
-  }
+    .auth-box button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
 
-  .auth-box h2 {
-    font-size: 22px;
-  }
+    .auth-footer {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+    }
 
-  .auth-box input {
-    font-size: 14px;
-    padding: 11px;
-  }
+    .auth-footer a {
+      color: #0a7cff;
+      text-decoration: none;
+      font-weight: 600;
+    }
 
-  .auth-box button {
-    font-size: 15px;
-    padding: 11px;
-  }
+    .auth-footer a:hover {
+      text-decoration: underline;
+    }
 
-  .switch {
-    font-size: 13px;
-  }
-}
-@media (max-width: 480px) {
-  .auth-box {
-    animation: fadeIn 0.35s ease;
-  }
-}
-@media (max-width: 480px) {
-  .auth-box input {
-    font-size: 14px;
-    height: 42px;
-    line-height: 1.4;
-  }
-}
+    .loading {
+      display: none;
+      text-align: center;
+      color: #0a7cff;
+      margin: 10px 0;
+    }
 
+    .error-message {
+      display: none;
+      background: #ffebee;
+      color: #c62828;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 480px) {
+      .auth-box {
+        padding: 25px;
+      }
+
+      body {
+        padding: 15px;
+      }
+    }
   </style>
 </head>
+
 <body>
 
-<div class="auth-box">
-  <h2>Login</h2>
-  <div class="error" id="errorMsg"></div>
-  <input type="email" id="email" placeholder="Email" required>
-  <input type="password" id="password" placeholder="Password" required>
-  <button onclick="login()">Login</button>
+  <div class="auth-box">
+    <h2>Login</h2>
 
-  <div class="switch">
-    No account? <a href="signup.html">Sign up</a>
+    <div class="error-message" id="error-message"></div>
+    <div class="loading" id="loading">Logging in...</div>
+
+    <input type="email" id="email" placeholder="Email address" required>
+    <input type="password" id="password" placeholder="Password" required>
+
+    <button onclick="login()" id="login-btn">Login</button>
+
+    <div class="auth-footer">
+      No account? <a href="signup.html">Sign up</a>
+    </div>
   </div>
-</div>
 
-<script>
-  // 1️⃣ Initialize Supabase
-  const SUPABASE_URL = "https://sgwgnysdejtobrbcglke.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_ah6iNOPj5d1wdOveSypkhg_XnbIlIJ3";
-  const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  <script>
+    // API endpoint
+    const API_BASE_URL = "https://bookit-api-tpvz.onrender.com";
+    const LOGIN_URL = `${API_BASE_URL}/api/auth/login/`;
 
-  // 2️⃣ Login function
-  async function login() {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const errorMsg = document.getElementById("errorMsg");
-
-    if (!email || !password) {
-      errorMsg.textContent = "Please enter email and password";
-      return;
+    // Show error message
+    function showError(message) {
+      const errorEl = document.getElementById("error-message");
+      errorEl.textContent = message;
+      errorEl.style.display = "block";
     }
 
-    // Sign in using Supabase Auth
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password
+    // Hide error message
+    function hideError() {
+      document.getElementById("error-message").style.display = "none";
+    }
+
+    // Show loading state
+    function setLoading(isLoading) {
+      document.getElementById("loading").style.display = isLoading ? "block" : "none";
+      document.getElementById("login-btn").disabled = isLoading;
+      document.getElementById("login-btn").textContent = isLoading ? "Logging in..." : "Login";
+    }
+
+    // Login function
+    window.login = async function () {
+      hideError();
+      setLoading(true);
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      // Validation
+      if (!email || !password) {
+        showError("Please fill in both email and password");
+        setLoading(false);
+        return;
+      }
+
+      // Email validation regex
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        showError("Please enter a valid email address");
+        setLoading(false);
+        return;
+      }
+
+      // Prepare request data
+      const requestData = {
+        email: email,
+        password: password
+      };
+
+      try {
+        console.log("Sending login request to:", LOGIN_URL);
+        console.log("Request data:", { email: email, password: "***" });
+
+        const response = await fetch(LOGIN_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(requestData)
+        });
+
+        console.log("Response status:", response.status);
+
+        // Get response text first
+        const responseText = await response.text();
+        let data = {};
+
+        try {
+          if (responseText) {
+            data = JSON.parse(responseText);
+          }
+        } catch (parseError) {
+          console.log("Could not parse response as JSON:", parseError);
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+
+        if (!response.ok) {
+          // Handle different types of errors
+          let errorMsg = "Login failed. ";
+
+          if (response.status === 400) {
+            if (data.non_field_errors) {
+              errorMsg += Array.isArray(data.non_field_errors) ? data.non_field_errors.join(', ') : data.non_field_errors;
+            } else if (data.detail) {
+              errorMsg += data.detail;
+            } else {
+              errorMsg += "Invalid email or password";
+            }
+          } else if (response.status === 401) {
+            errorMsg = "Invalid credentials. Please check your email and password.";
+          } else if (data.detail) {
+            errorMsg += data.detail;
+          } else if (responseText) {
+            errorMsg += responseText;
+          } else {
+            errorMsg += `Server returned: ${response.status} ${response.statusText}`;
+          }
+
+          throw new Error(errorMsg);
+        }
+
+        // Success - Save user info locally
+        console.log("Login successful:", data);
+
+        // Clear any previous user data
+        localStorage.clear();
+
+        // Save tokens
+        if (data.access) {
+          localStorage.setItem("accessToken", data.access);
+          console.log("Access token saved");
+        }
+        if (data.refresh) {
+          localStorage.setItem("refreshToken", data.refresh);
+          console.log("Refresh token saved");
+        }
+
+        // Save user information
+        if (data.user) {
+          // Extract user data
+          const user = data.user;
+
+          // Set basic authentication flag
+          localStorage.setItem("loggedInUser", "true");
+
+          // Save user details
+          if (user.email) localStorage.setItem("userEmail", user.email);
+          if (user.full_name) localStorage.setItem("userName", user.full_name);
+          if (user.username) localStorage.setItem("username", user.username);
+          if (user.phone_number) localStorage.setItem("userPhone", user.phone_number);
+
+          // Determine role (you might need to adjust this based on your API response)
+          if (user.is_agent !== undefined) {
+            const role = user.is_agent ? "agent" : "lodger";
+            localStorage.setItem("userRole", role);
+            console.log("User role:", role);
+
+            // Save agency info for agents
+            if (user.is_agent && user.agency_name) {
+              localStorage.setItem("agencyName", user.agency_name);
+            }
+          } else if (user.role) {
+            // If API directly provides role
+            localStorage.setItem("userRole", user.role.toLowerCase());
+          }
+
+          // Save full user object for reference
+          localStorage.setItem("userData", JSON.stringify(user));
+        } else {
+          // Fallback if no user object in response
+          localStorage.setItem("loggedInUser", "true");
+          localStorage.setItem("userEmail", email);
+        }
+
+        // Show success message and redirect
+        console.log("All localStorage items after login:");
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          console.log(key, ":", localStorage.getItem(key));
+        }
+
+        alert("Login successful! Redirecting to homepage...");
+        window.location.href = "index.html";
+
+      } catch (err) {
+        console.error("Login error:", err);
+
+        // Enhanced error message
+        let errorMessage = err.message || "Something went wrong during login!";
+
+        // Check for CORS errors
+        if (err.name === 'TypeError' && err.message.includes('Failed to fetch')) {
+          errorMessage = "Cannot connect to the server. This may be due to:\n\n" +
+            "• Network connectivity issues\n" +
+            "• Server is down\n" +
+            "• CORS restrictions (try using a CORS extension for development)";
+        }
+
+        showError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // Add form submission on Enter key
+    document.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        login();
+      }
     });
 
-    if (error) {
-      errorMsg.textContent = "Invalid email or password!";
-      console.error(error);
-      return;
-    }
+    // Check if user is already logged in
+    window.addEventListener('DOMContentLoaded', function () {
+      const loggedIn = localStorage.getItem("loggedInUser");
+      const accessToken = localStorage.getItem("accessToken");
 
-    // ✅ Login successful
-    // Supabase automatically stores the session (no localStorage needed)
-
-    // Optional: fetch extra user info from your 'users' table
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select("*")
-      .eq('email', email)
-      .single();
-
-    if (userError) {
-      console.error("Error fetching user data:", userError);
-      alert("Login successful, but failed to fetch user info.");
-    }
-
-    // Redirect to homepage
-    window.location.href = "index.html";
-  }
-
-  // 3️⃣ Check if user is already logged in
-  document.addEventListener("DOMContentLoaded", async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
-      // User already logged in, redirect to homepage
-      window.location.href = "index.html";
-    }
-  });
-</script>
-
-
+      if (loggedIn === "true" && accessToken) {
+        console.log("User is already logged in, redirecting...");
+        // Optional: You can redirect immediately or show a message
+        // window.location.href = "index.html";
+      }
+    });
+  </script>
 
 </body>
+
 </html>

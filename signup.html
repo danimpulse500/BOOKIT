@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signup</title>
-    <!-- Include the Supabase client library BEFORE your script -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-      <style>
-    * { box-sizing: border-box; font-family: "Segoe UI", Arial, sans-serif; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signup</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -16,21 +19,37 @@
       justify-content: center;
       align-items: center;
     }
+
     .auth-box {
       background: #fff;
       width: 100%;
       max-width: 380px;
       padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
       animation: slideUp 0.5s ease;
     }
+
     @keyframes slideUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
-    .auth-box h2 { text-align: center; margin-bottom: 20px; color: #0a7cff; }
-    .auth-box input, .auth-box select {
+
+    .auth-box h2 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: #0a7cff;
+    }
+
+    .auth-box input,
+    .auth-box select {
       width: 100%;
       padding: 12px;
       margin-bottom: 15px;
@@ -38,7 +57,13 @@
       border-radius: 6px;
       font-size: 15px;
     }
-    .auth-box input:focus, .auth-box select:focus { outline: none; border-color: #0a7cff; }
+
+    .auth-box input:focus,
+    .auth-box select:focus {
+      outline: none;
+      border-color: #0a7cff;
+    }
+
     .auth-box button {
       width: 100%;
       padding: 12px;
@@ -50,105 +75,280 @@
       cursor: pointer;
       transition: background 0.3s;
     }
-    .auth-box button:hover { background: #055ec2; }
-    .auth-footer { text-align: center; margin-top: 15px; font-size: 14px; }
-    .auth-footer a { color: #0a7cff; text-decoration: none; font-weight: 600; }
-    .auth-footer a:hover { text-decoration: underline; }
 
-    @media (max-width: 480px) { 
-      .auth-box { margin: 0 15px; padding: 25px; }
-      body { padding: 20px; }
+    .auth-box button:hover {
+      background: #055ec2;
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .auth-footer a {
+      color: #0a7cff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .auth-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      color: #0a7cff;
+      margin: 10px 0;
+    }
+
+    .error-message {
+      display: none;
+      background: #ffebee;
+      color: #c62828;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 480px) {
+      .auth-box {
+        margin: 0 15px;
+        padding: 25px;
+      }
+
+      body {
+        padding: 20px;
+      }
     }
   </style>
 </head>
+
 <body>
-    <!-- Your HTML content -->
-     <div class="auth-box">
-  <h2>Create Account</h2>
+  <div class="auth-box">
+    <h2>Create Account</h2>
 
-  <input type="text" id="name" placeholder="Full Name" required>
-  <input type="email" id="email" placeholder="Email address" required>
-  <input type="password" id="password" placeholder="Password" required>
+    <div class="error-message" id="error-message"></div>
+    <div class="loading" id="loading">Creating account...</div>
 
-  <select id="role" required>
-    <option value="">Select Role</option>
-    <option value="lodger">Lodger</option>
-    <option value="agent">Agent</option>
-  </select>
+    <input type="text" id="full_name" placeholder="Full Name" required>
+    <input type="email" id="email" placeholder="Email address" required>
+    <input type="password" id="password1" placeholder="Password" required>
+    <input type="password" id="password2" placeholder="Confirm Password" required>
+    <input type="tel" id="phone_number" placeholder="Phone Number" required>
 
-  <!-- Agency input for Agents only -->
-  <input type="text" id="agency" placeholder="Agency Name (Agents only)" style="display:none;">
+    <select id="role" required>
+      <option value="">Select Role</option>
+      <option value="lodger">Lodger</option>
+      <option value="agent">Agent</option>
+    </select>
 
-  <button onclick="signup()">Sign Up</button>
+    <!-- Agency input for Agents only -->
+    <input type="text" id="agency_name" placeholder="Agency Name (Agents only)" style="display:none;">
 
-  <div class="auth-footer">
-    Already have an account? <a href="login.html">Login</a>
+    <button onclick="signup()" id="signup-btn">Sign Up</button>
+
+    <div class="auth-footer">
+      Already have an account? <a href="login.html">Login</a>
+    </div>
   </div>
-</div>
 
-    <script>
-      // 1️⃣ Initialize Supabase once
-      // Now 'Supabase' will be defined because the library is loaded
-      window.supabase = Supabase.createClient(
-        "https://sgwgnysdejtobrbcglke.supabase.co",
-        "sb_publishable_ah6iNOPj5d1wdOveSypkhg_XnbIlIJ3"
-      );
+  <script>
+    // API endpoint - Updated to match your provided URL
+    const API_BASE_URL = "https://bookit-api-tpvz.onrender.com";
+    const REGISTRATION_URL = `${API_BASE_URL}/api/auth/registration/`;
 
-      // Show/hide agency field
-      document.getElementById("role").addEventListener("change", function() {
-        const agencyInput = document.getElementById("agency");
-        if (this.value.toLowerCase() === "agent") {
-          agencyInput.style.display = "block";
-        } else {
-          agencyInput.style.display = "none";
-          agencyInput.value = "";
+    // Show/hide agency field
+    document.getElementById("role").addEventListener("change", function () {
+      const agencyInput = document.getElementById("agency_name");
+      if (this.value.toLowerCase() === "agent") {
+        agencyInput.style.display = "block";
+        agencyInput.required = true;
+      } else {
+        agencyInput.style.display = "none";
+        agencyInput.value = "";
+        agencyInput.required = false;
+      }
+    });
+
+    // Show error message
+    function showError(message) {
+      const errorEl = document.getElementById("error-message");
+      errorEl.textContent = message;
+      errorEl.style.display = "block";
+    }
+
+    // Hide error message
+    function hideError() {
+      document.getElementById("error-message").style.display = "none";
+    }
+
+    // Show loading state
+    function setLoading(isLoading) {
+      document.getElementById("loading").style.display = isLoading ? "block" : "none";
+      document.getElementById("signup-btn").disabled = isLoading;
+    }
+
+    // Signup function with better error handling
+    window.signup = async function () {
+      hideError();
+      setLoading(true);
+
+      const email = document.getElementById("email").value.trim();
+      const full_name = document.getElementById("full_name").value.trim();
+      const password1 = document.getElementById("password1").value;
+      const password2 = document.getElementById("password2").value;
+      const phone_number = document.getElementById("phone_number").value.trim();
+      const role = document.getElementById("role").value;
+      const agency_name = role.toLowerCase() === "agent" ?
+        document.getElementById("agency_name").value.trim() : "";
+
+      // Validation
+      if (!email || !full_name || !password1 || !password2 || !phone_number || !role) {
+        showError("Please fill in all required fields");
+        setLoading(false);
+        return;
+      }
+
+      if (password1 !== password2) {
+        showError("Passwords do not match");
+        setLoading(false);
+        return;
+      }
+
+      if (password1.length < 8) {
+        showError("Password must be at least 8 characters long");
+        setLoading(false);
+        return;
+      }
+
+      if (role.toLowerCase() === "agent" && !agency_name) {
+        showError("Please enter your agency name");
+        setLoading(false);
+        return;
+      }
+
+      // Prepare request data based on API schema
+      const requestData = {
+        email: email,
+        password1: password1,
+        password2: password2,
+        full_name: full_name,
+        phone_number: phone_number,
+        is_agent: role.toLowerCase() === "agent"
+      };
+
+      // Add agency_name only if user is an agent
+      if (role.toLowerCase() === "agent") {
+        requestData.agency_name = agency_name;
+      }
+
+      try {
+        console.log("Sending request to:", REGISTRATION_URL);
+        console.log("Request data:", requestData);
+
+        const response = await fetch(REGISTRATION_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(requestData)
+        });
+
+        console.log("Response status:", response.status);
+
+        // Get response text first to handle both JSON and text responses
+        const responseText = await response.text();
+        let data = {};
+
+        try {
+          if (responseText) {
+            data = JSON.parse(responseText);
+          }
+        } catch (parseError) {
+          console.log("Could not parse response as JSON, using text");
+          data = { detail: responseText || "No response body" };
         }
-      });
 
-      // 2️⃣ Signup function
-      // 2️⃣ Signup function
-  window.signup = async function() {
-    const name = document.getElementById("name").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-    const role = document.getElementById("role").value;
-    const agency_name = role.toLowerCase() === "agent" ? document.getElementById("agency").value.trim() : "";
+        if (!response.ok) {
+          // Handle different types of errors
+          let errorMsg = "Registration failed. ";
 
-    if (!name || !email || !password || !role) {
-      alert("Please fill in all fields");
-      return;
+          if (response.status === 400) {
+            // Bad Request - usually validation errors
+            if (data.email) {
+              errorMsg += `Email: ${Array.isArray(data.email) ? data.email.join(', ') : data.email} `;
+            }
+            if (data.password1) {
+              errorMsg += `Password: ${Array.isArray(data.password1) ? data.password1.join(', ') : data.password1} `;
+            }
+            if (data.non_field_errors) {
+              errorMsg += Array.isArray(data.non_field_errors) ? data.non_field_errors.join(', ') : data.non_field_errors;
+            }
+            if (errorMsg === "Registration failed. " && data.detail) {
+              errorMsg += data.detail;
+            }
+          } else if (response.status === 405) {
+            errorMsg = "Method not allowed. Please contact the API administrator.";
+          } else if (data.detail) {
+            errorMsg += data.detail;
+          } else if (responseText) {
+            errorMsg += responseText;
+          } else {
+            errorMsg += `Server returned: ${response.status} ${response.statusText}`;
+          }
+
+          throw new Error(errorMsg);
+        }
+
+        // Success - Save user info locally
+        console.log("Registration successful:", data);
+
+        // Save user info to localStorage
+        localStorage.setItem("loggedInUser", "true");
+        localStorage.setItem("userName", full_name);
+        localStorage.setItem("userRole", role);
+        localStorage.setItem("userEmail", email);
+
+        if (role.toLowerCase() === "agent") {
+          localStorage.setItem("agencyName", agency_name);
+        }
+
+        // Show success message and redirect
+        alert("Signup successful! You will be redirected to the home page.");
+        window.location.href = "index.html";
+
+      } catch (err) {
+        console.error("Registration error:", err);
+
+        // Enhanced error message
+        let errorMessage = err.message || "Something went wrong during registration!";
+
+        // Check for CORS errors
+        if (err.name === 'TypeError' && err.message.includes('Failed to fetch')) {
+          errorMessage = "Cannot connect to the server. This may be due to:\n\n" +
+            "• Network connectivity issues\n" +
+            "• Server is down\n" +
+            "• CORS restrictions (try using a CORS extension for development)";
+        }
+
+        showError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
     }
-    if (role.toLowerCase() === "agent" && !agency_name) {
-      alert("Please enter your agency name");
-      return;
-    }
 
-    try {
-      // 3️⃣ Create Auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
-      if (authError) throw authError;
-
-      const user = authData.user;
-
-      // 4️⃣ Insert into users table
-      const { error: profileError } = await supabase
-        .from("users")
-        .insert([{ id: user.id, name, email, role, agency_name }]);
-      if (profileError) throw profileError;
-
-      // 5️⃣ Save info locally
-      localStorage.setItem("loggedInUser", "true");
-      localStorage.setItem("userName", name);
-      localStorage.setItem("userRole", role);
-
-      alert("Signup successful!");
-      window.location.href = "index.html";
-
-    } catch (err) {
-      console.error(err);
-      alert(err.message || "Something went wrong!");
-    }
-  }
-    </script>
+    // Add form submission on Enter key
+    document.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        signup();
+      }
+    });
+  </script>
 </body>
+
 </html>
