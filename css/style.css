@@ -306,10 +306,22 @@ body {
    LISTINGS & CARDS
 ========================= */
 .listings-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  /* allow items to wrap to the next line */
   gap: 20px;
+  /* spacing between items */
   padding: 20px;
+  justify-content: center;
+  /* center items horizontally */
+}
+
+/* Optional: make each item responsive like the grid */
+.listings-container>* {
+  flex: 1 1 250px;
+  /* grow, shrink, base width 250px */
+  max-width: 300px;
+  /* optional max width for each item */
 }
 
 .listing-card {
