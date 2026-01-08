@@ -41,8 +41,8 @@
       background: #fff;
       border-radius: 12px;
       width: 100%;
-      max-width: 500px;
-      max-height: 80vh;
+      max-width: 550px;
+      max-height: 85vh;
       padding: 30px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
       display: flex;
@@ -54,7 +54,8 @@
       display: none;
       flex-direction: column;
       overflow-y: auto;
-      max-height: calc(80vh - 80px);
+      max-height: calc(85vh - 80px);
+      padding-right: 10px;
     }
 
     .form-step.active {
@@ -96,6 +97,8 @@
       display: flex;
       justify-content: space-between;
       margin-top: 25px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
     }
 
     .buttons button {
@@ -123,6 +126,7 @@
 
     .next-btn:hover {
       background: linear-gradient(135deg, #130569, #2b1bbf);
+      opacity: 0.9;
     }
 
     /* PROGRESS BAR */
@@ -143,12 +147,10 @@
     }
 
     /* IMAGE PREVIEW */
-    .image-preview {
+    .image-preview-container {
       margin-top: 10px;
       max-height: 200px;
-      object-fit: cover;
-      border-radius: 8px;
-      display: none;
+      overflow-y: auto;
     }
 
     /* LOADING AND MESSAGE STYLES */
@@ -220,16 +222,16 @@
       margin-top: 10px;
     }
 
-    .image-preview-container {
-      display: flex;
-      flex-wrap: wrap;
+    .image-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
       gap: 10px;
       margin-top: 10px;
     }
 
     .image-preview-item {
-      width: 80px;
-      height: 80px;
+      width: 100%;
+      height: 100px;
       object-fit: cover;
       border-radius: 8px;
       border: 2px solid #ddd;
@@ -242,12 +244,14 @@
       background: #dc3545;
       color: white;
       border-radius: 50%;
-      width: 20px;
-      height: 20px;
+      width: 24px;
+      height: 24px;
       text-align: center;
-      line-height: 18px;
+      line-height: 22px;
       cursor: pointer;
-      font-size: 12px;
+      font-size: 14px;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     .image-item {
@@ -288,17 +292,81 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      padding: 5px;
     }
 
     .amenity-option input[type="checkbox"] {
       width: auto;
       margin: 0;
+      transform: scale(1.2);
     }
 
     .amenity-option label {
       margin: 0;
       font-weight: normal;
-      font-size: 13px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    /* Form row for inline fields */
+    .form-row {
+      display: flex;
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .form-col {
+      flex: 1;
+    }
+
+    /* Checkbox for is_available */
+    .availability-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 15px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .availability-checkbox input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+      transform: scale(1.2);
+    }
+
+    /* Optional label style */
+    .optional {
+      color: #666;
+      font-weight: normal;
+    }
+
+    /* Scrollbar styling */
+    .form-step::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .form-step::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+
+    .form-step::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+
+    .form-step::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+
+    /* Small info text */
+    .info-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+      margin-bottom: 10px;
     }
   </style>
 </head>
@@ -346,38 +414,35 @@
 
       <!-- Step 1: Basic Info -->
       <div class="form-step active">
-        <h2>Basic Info</h2>
-        <label for="title">Lodge Name</label>
-        <input type="text" id="title" required>
+        <h2>Basic Information</h2>
 
-        <label for="location">Location</label>
+        <label for="lodge_name">Lodge Name *</label>
+        <input type="text" id="lodge_name" placeholder="Enter lodge/property name" required>
+
+        <label for="total_rooms">Total Rooms *</label>
+        <input type="number" id="total_rooms" min="1" value="1" required>
+
+        <label for="room_type">Room Type *</label>
+        <select id="room_type" required>
+          <option value="">Select Room Type</option>
+          <option value="SELF_CONTAINED">Self Contained</option>
+          <option value="ONE_BEDROOM">One Bedroom</option>
+          <option value="TWO_BEDROOM">Two Bedroom</option>
+          <option value="STUDIO">Studio</option>
+          <option value="SHARED_ROOM">Shared Room</option>
+          <option value="SINGLE_ROOM">Single Room</option>
+          <option value="OTHER">Other</option>
+        </select>
+
+        <label for="room_number">Room/Unit Number <span class="optional">(Optional)</span></label>
+        <input type="text" id="room_number" placeholder="e.g., Room 101, Unit A, etc.">
+
+        <label for="location">Location *</label>
         <select id="location" required>
           <option value="">Select Location</option>
-          <option value="Ifite-Up school">Ifite-Up School</option>
-          <option value="Ifite-Down school">Ifite-Down School</option>
-          <option value="Amansea">Amansea</option>
-          <option value="Temp Site">Temp Site</option>
-          <option value="Aroma">Aroma</option>
+          <!-- These options will be dynamically populated from the API -->
         </select>
-
-        <!-- According to API, we need bedrooms and bathrooms -->
-        <label for="bedrooms">Number of Bedrooms</label>
-        <input type="number" id="bedrooms" min="1" required>
-
-        <label for="bathrooms">Number of Bathrooms</label>
-        <input type="number" id="bathrooms" min="1" required>
-
-        <!-- ROOM TYPE DROPDOWN - FOR FUTURE USE -->
-        <label for="room_type">Room Type (Optional - for future)</label>
-        <select id="room_type">
-          <option value="">Select Room Type</option>
-          <option value="Self-Contained">Self-Contained</option>
-          <option value="One-Bedroom">One Bedroom</option>
-          <option value="Two-Bedroom">Two Bedroom</option>
-          <option value="Studio">Studio</option>
-          <option value="Shared Room">Shared Room</option>
-          <option value="Single Room">Single Room</option>
-        </select>
+        <div class="info-text">Loading locations...</div>
 
         <div class="buttons">
           <span></span>
@@ -385,22 +450,21 @@
         </div>
       </div>
 
-      <!-- Step 2: Details -->
+      <!-- Step 2: Details & Pricing -->
       <div class="form-step">
-        <h2>Details</h2>
+        <h2>Details & Pricing</h2>
 
-        <label for="price">Annual Price (₦)</label>
-        <input type="number" id="price" min="1000" step="0.01" required>
+        <label for="price">Annual Price (₦) *</label>
+        <input type="number" id="price" min="1000" step="0.01" placeholder="e.g., 500000" required>
 
-        <label for="description">Description</label>
-        <textarea id="description" placeholder="Describe the lodge (features, condition, surroundings)"
-          required></textarea>
+        <label for="description">Description *</label>
+        <textarea id="description"
+          placeholder="Describe the lodge (features, condition, surroundings, facilities, etc.)" required></textarea>
 
-        <!-- AMENITIES SECTION - FOR FUTURE USE -->
-        <label for="amenities">Amenities (Optional - for future)</label>
+        <label>Amenities <span class="optional">(Optional)</span></label>
         <div class="amenities-grid">
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_water" name="amenities" value="Water">
+            <input type="checkbox" id="amenity_water" name="amenities" value="Water Supply">
             <label for="amenity_water">Water Supply</label>
           </div>
           <div class="amenity-option">
@@ -431,10 +495,26 @@
             <input type="checkbox" id="amenity_ac" name="amenities" value="Air Conditioning">
             <label for="amenity_ac">Air Conditioning</label>
           </div>
+          <div class="amenity-option">
+            <input type="checkbox" id="amenity_generator" name="amenities" value="Generator">
+            <label for="amenity_generator">Generator</label>
+          </div>
+          <div class="amenity-option">
+            <input type="checkbox" id="amenity_laundry" name="amenities" value="Laundry">
+            <label for="amenity_laundry">Laundry</label>
+          </div>
+          <div class="amenity-option">
+            <input type="checkbox" id="amenity_tv" name="amenities" value="TV">
+            <label for="amenity_tv">TV</label>
+          </div>
+          <div class="amenity-option">
+            <input type="checkbox" id="amenity_refrigerator" name="amenities" value="Refrigerator">
+            <label for="amenity_refrigerator">Refrigerator</label>
+          </div>
         </div>
 
-        <label for="rules">Rules (optional)</label>
-        <textarea id="rules" placeholder="e.g. No loud music after 10pm"></textarea>
+        <label for="rules">House Rules <span class="optional">(Optional)</span></label>
+        <textarea id="rules" placeholder="e.g., No smoking, No pets, Quiet hours 10pm-7am, etc."></textarea>
 
         <div class="buttons">
           <button type="button" class="prev-btn">Previous</button>
@@ -442,20 +522,40 @@
         </div>
       </div>
 
-      <!-- Step 3: Images -->
+      <!-- Step 3: Contact & Media -->
       <div class="form-step">
-        <h2>Images</h2>
+        <h2>Contact & Media</h2>
 
-        <label for="images">Upload Images (You can select multiple)</label>
-        <input type="file" id="images" accept="image/*" multiple>
-
-        <div class="image-upload-container">
-          <div class="image-preview-container" id="imagePreviewContainer"></div>
+        <div class="form-row">
+          <div class="form-col">
+            <label for="contact_phone">Contact Phone <span class="optional">(Optional)</span></label>
+            <input type="tel" id="contact_phone" placeholder="e.g., 08012345678">
+          </div>
+          <div class="form-col">
+            <label for="contact_email">Contact Email <span class="optional">(Optional)</span></label>
+            <input type="email" id="contact_email" placeholder="e.g., contact@example.com">
+          </div>
         </div>
 
-        <p style="font-size: 12px; color: #666; margin-top: 10px;">
-          Tip: First image will be used as the cover photo. Upload clear photos of the property.
-        </p>
+        <label for="agency">Agency Name <span class="optional">(Optional)</span></label>
+        <input type="text" id="agency" placeholder="If listing under an agency">
+
+        <div class="availability-checkbox">
+          <input type="checkbox" id="is_available" checked>
+          <label for="is_available">This property is currently available</label>
+        </div>
+
+        <label for="video">Video URL <span class="optional">(Optional)</span></label>
+        <input type="url" id="video" placeholder="https://example.com/video.mp4">
+        <div class="info-text">Upload video to Cloudinary and paste the URL here</div>
+
+        <label for="images">Upload Images *</label>
+        <input type="file" id="images" accept="image/*" multiple required>
+        <div class="info-text">Upload clear photos of the property. First image will be used as cover photo.</div>
+
+        <div class="image-upload-container">
+          <div class="image-preview-grid" id="imagePreviewContainer"></div>
+        </div>
 
         <div class="buttons">
           <button type="button" class="prev-btn">Previous</button>
@@ -484,6 +584,7 @@
     const API_BASE_URL = "https://bookit-api-tpvz.onrender.com";
     const LISTINGS_URL = `${API_BASE_URL}/api/listings/`;
     const TOKEN_REFRESH_URL = `${API_BASE_URL}/api/auth/token/refresh/`;
+    const LOCATIONS_URL = `${API_BASE_URL}/api/locations/`; // Add locations endpoint
 
     // Token management functions
     function isTokenExpired() {
@@ -554,6 +655,69 @@
       return accessToken;
     }
 
+    // Load locations from API
+    async function loadLocations() {
+      try {
+        const accessToken = await getValidAccessToken();
+        const response = await fetch(LOCATIONS_URL, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const locations = await response.json();
+          const locationSelect = document.getElementById('location');
+          const infoText = locationSelect.nextElementSibling;
+
+          locationSelect.innerHTML = '<option value="">Select Location</option>';
+
+          if (locations.length === 0) {
+            infoText.textContent = "No locations available. Please contact support.";
+            infoText.style.color = "#dc3545";
+            return;
+          }
+
+          locations.forEach(location => {
+            const option = document.createElement('option');
+            option.value = location.id;
+            option.textContent = location.name;
+            locationSelect.appendChild(option);
+          });
+
+          infoText.textContent = `${locations.length} location(s) loaded`;
+          infoText.style.color = "#28a745";
+        } else {
+          const infoText = document.querySelector('.info-text');
+          infoText.textContent = "Failed to load locations. Using default options.";
+          infoText.style.color = "#dc3545";
+
+          // Add default options as fallback
+          const defaultLocations = [
+            { id: 1, name: "Ifite-Up School" },
+            { id: 2, name: "Ifite-Down School" },
+            { id: 3, name: "Amansea" },
+            { id: 4, name: "Temp Site" },
+            { id: 5, name: "Aroma" }
+          ];
+
+          const locationSelect = document.getElementById('location');
+          defaultLocations.forEach(location => {
+            const option = document.createElement('option');
+            option.value = location.id;
+            option.textContent = location.name;
+            locationSelect.appendChild(option);
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load locations:", error);
+        const infoText = document.querySelector('.info-text');
+        infoText.textContent = "Error loading locations. Please check connection.";
+        infoText.style.color = "#dc3545";
+      }
+    }
+
     // Check authentication on page load
     function checkAuthentication() {
       const loggedInUser = localStorage.getItem("loggedInUser");
@@ -578,7 +742,7 @@
       return true;
     }
 
-    // Initialize authentication check
+    // Initialize authentication check and load data
     document.addEventListener('DOMContentLoaded', async () => {
       if (!checkAuthentication()) {
         return;
@@ -588,7 +752,11 @@
       const validToken = await getValidAccessToken();
       if (!validToken) {
         showError("Please login again to post listings.");
+        return;
       }
+
+      // Load locations from API
+      await loadLocations();
     });
 
     const steps = document.querySelectorAll(".form-step");
@@ -774,63 +942,68 @@
 
       try {
         // Get form data according to API schema
-        const title = document.getElementById("title").value.trim();
-        const location = document.getElementById("location").value;
-        const bedrooms = parseInt(document.getElementById("bedrooms").value);
-        const bathrooms = parseInt(document.getElementById("bathrooms").value);
+        const lodge_name = document.getElementById("lodge_name").value.trim();
+        const location = parseInt(document.getElementById("location").value);
+        const room_type = document.getElementById("room_type").value;
+        const total_rooms = parseInt(document.getElementById("total_rooms").value);
+        const room_number = document.getElementById("room_number").value.trim() || null;
         const price = parseFloat(document.getElementById("price").value);
         const description = document.getElementById("description").value.trim();
-        const rules = document.getElementById("rules").value.trim();
-
-        // Optional fields for future use
-        const room_type = document.getElementById("room_type").value;
         const amenities = getSelectedAmenities();
+        const rules = document.getElementById("rules").value.trim() || null;
+        const contact_phone = document.getElementById("contact_phone").value.trim() || null;
+        const contact_email = document.getElementById("contact_email").value.trim() || null;
+        const agency = document.getElementById("agency").value.trim() || null;
+        const is_available = document.getElementById("is_available").checked;
+        const video = document.getElementById("video").value.trim() || null;
+
+        // Create JSON data
+        const listingData = {
+          lodge_name: lodge_name,
+          description: description,
+          price: price.toFixed(2),
+          location: location,
+          room_type: room_type,
+          amenities: amenities.length > 0 ? amenities : [],
+          total_rooms: total_rooms,
+          room_number: room_number,
+          is_available: is_available,
+          rules: rules,
+          contact_phone: contact_phone,
+          contact_email: contact_email,
+          agency: agency,
+          video: video
+          // Note: agent field will be automatically set by the API from the authenticated user
+        };
+
+        // Remove null fields from JSON
+        Object.keys(listingData).forEach(key => {
+          if (listingData[key] === null || listingData[key] === undefined) {
+            delete listingData[key];
+          }
+        });
+
+        console.log("Listing data:", listingData);
 
         // Prepare FormData for multipart/form-data
         const formData = new FormData();
 
-        // Add text fields
-        formData.append("title", title);
-        formData.append("description", description);
-        formData.append("price", price.toFixed(2));
-        formData.append("location", location);
-        formData.append("bedrooms", bedrooms);
-        formData.append("bathrooms", bathrooms);
+        // Add JSON data as a string
+        formData.append("data", JSON.stringify(listingData));
 
-        // Add optional rules if provided
-        if (rules) {
-          formData.append("rules", rules);
-        }
-
-        // Add images as files - API expects "uploaded_images" as field name
+        // Add images
         uploadedImages.forEach((img, index) => {
           formData.append("uploaded_images", img.file, img.name || `image_${index}.jpg`);
         });
 
-        // Store room_type and amenities in localStorage for future use
-        if (room_type) {
-          localStorage.setItem("last_room_type", room_type);
-        }
-        if (amenities.length > 0) {
-          localStorage.setItem("last_amenities", JSON.stringify(amenities));
-        }
-
         console.log("Sending request to:", LISTINGS_URL);
-        console.log("FormData entries:");
-        for (let [key, value] of formData.entries()) {
-          if (key === "uploaded_images") {
-            console.log(`${key}: File - ${value.name}, ${value.size} bytes`);
-          } else {
-            console.log(`${key}: ${value}`);
-          }
-        }
 
-        // Send POST request with FormData (multipart/form-data)
+        // Send POST request
         const response = await fetch(LISTINGS_URL, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
-            // DO NOT set Content-Type header - browser will set it automatically with boundary
+            // Don't set Content-Type for FormData - browser will set it with boundary
           },
           body: formData
         });
@@ -859,11 +1032,7 @@
             } else if (data.non_field_errors) {
               errorMsg += data.non_field_errors.join(', ');
             } else if (data.uploaded_images) {
-              // Image upload errors
-              errorMsg += "Image upload error: ";
-              Object.keys(data.uploaded_images).forEach(index => {
-                errorMsg += `Image ${parseInt(index) + 1}: ${data.uploaded_images[index].join(', ')}. `;
-              });
+              errorMsg += "Image upload error.";
             } else {
               // Show field-specific errors
               const fieldErrors = [];
@@ -884,12 +1053,8 @@
             errorMsg = "Session expired. Please login again.";
           } else if (response.status === 403) {
             errorMsg = "You don't have permission to create listings. Please ensure you're registered as an agent.";
-          } else if (response.status === 413) {
-            errorMsg = "Uploaded files are too large. Please reduce image sizes.";
-          } else if (response.status === 415) {
-            errorMsg = "Unsupported file type. Please upload JPEG or PNG images only.";
           } else {
-            errorMsg += `Server error: ${response.status} ${response.statusText}`;
+            errorMsg += `Server error: ${response.status}`;
           }
 
           throw new Error(errorMsg);
@@ -904,14 +1069,16 @@
         uploadedImages = [];
         imagePreviewContainer.innerHTML = "";
 
+        // Reset room type to default
+        document.getElementById('room_type').selectedIndex = 0;
+
         // Uncheck all amenities checkboxes
         document.querySelectorAll('input[name="amenities"]:checked').forEach(cb => {
           cb.checked = false;
         });
 
-        // Clear stored optional fields
-        localStorage.removeItem("last_room_type");
-        localStorage.removeItem("last_amenities");
+        // Reset availability checkbox
+        document.getElementById('is_available').checked = true;
 
         // Redirect after 2 seconds
         setTimeout(() => {
@@ -921,14 +1088,14 @@
       } catch (err) {
         console.error("Error creating listing:", err);
 
-        let errorMessage = err.message || "Something went wrong while creating the listing.";
+        let errorMessageText = err.message || "Something went wrong while creating the listing.";
 
         // Check for CORS errors
         if (err.name === 'TypeError' && err.message.includes('Failed to fetch')) {
-          errorMessage = "Cannot connect to the server. Please check your internet connection and try again.";
+          errorMessageText = "Cannot connect to the server. Please check your internet connection and try again.";
         }
 
-        showError(errorMessage);
+        showError(errorMessageText);
       } finally {
         setLoading(false);
       }
