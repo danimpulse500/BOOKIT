@@ -271,6 +271,14 @@
           console.log("Refresh token saved");
         }
 
+              // After successful login:
+        if (data.user && data.user.id) {
+          localStorage.setItem("userId", data.user.id);
+        } else if (data.id) {
+          localStorage.setItem("userId", data.id);
+        }
+
+
         // Save user information
         if (data.user) {
           // Extract user data
@@ -331,6 +339,7 @@
             "• Server is down\n" +
             "• CORS restrictions (try using a CORS extension for development)";
         }
+
 
         showError(errorMessage);
       } finally {

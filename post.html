@@ -275,6 +275,31 @@
     .auth-warning a:hover {
       text-decoration: underline;
     }
+
+    /* Amenities checkbox grid */
+    .amenities-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .amenity-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .amenity-option input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+    }
+
+    .amenity-option label {
+      margin: 0;
+      font-weight: normal;
+      font-size: 13px;
+    }
   </style>
 </head>
 
@@ -301,7 +326,7 @@
   </header>
 
   <div class="form-wrapper">
-    <form id="multiStepForm" class="multi-step-form">
+    <form id="multiStepForm" class="multi-step-form" enctype="multipart/form-data">
 
       <div class="progress-container">
         <div id="progressBar" class="progress-bar"></div>
@@ -335,11 +360,24 @@
           <option value="Aroma">Aroma</option>
         </select>
 
+        <!-- According to API, we need bedrooms and bathrooms -->
         <label for="bedrooms">Number of Bedrooms</label>
         <input type="number" id="bedrooms" min="1" required>
 
         <label for="bathrooms">Number of Bathrooms</label>
         <input type="number" id="bathrooms" min="1" required>
+
+        <!-- ROOM TYPE DROPDOWN - FOR FUTURE USE -->
+        <label for="room_type">Room Type (Optional - for future)</label>
+        <select id="room_type">
+          <option value="">Select Room Type</option>
+          <option value="Self-Contained">Self-Contained</option>
+          <option value="One-Bedroom">One Bedroom</option>
+          <option value="Two-Bedroom">Two Bedroom</option>
+          <option value="Studio">Studio</option>
+          <option value="Shared Room">Shared Room</option>
+          <option value="Single Room">Single Room</option>
+        </select>
 
         <div class="buttons">
           <span></span>
@@ -358,8 +396,42 @@
         <textarea id="description" placeholder="Describe the lodge (features, condition, surroundings)"
           required></textarea>
 
-        <label for="amenities">Amenities (comma separated)</label>
-        <textarea id="amenities" placeholder="Water, Light, Security, WiFi, Parking, Kitchen, etc."></textarea>
+        <!-- AMENITIES SECTION - FOR FUTURE USE -->
+        <label for="amenities">Amenities (Optional - for future)</label>
+        <div class="amenities-grid">
+          <div class="amenity-option">
+            <input type="checkbox" id="amenity_water" name="amenities" value="Water">
+            <label for="amenity_water">Water Supply</label>
+          </div>
+          <div class="amenity-option">
+            <input type="checkbox" id="amenity_electricity" name="amenities" value="Electricity">
+            <label for="amenity_electricity">Electricity</label>
+          </div>
+          <div class="amenity-option">
+            <input type="checkbox" id="amenity_security" name="amenities" value="Security">
+            <label for="amenity_security">Security</label>
+          </div>
+          <div class="amenity-option">
+            <input type="checkbox" id="amenity_wifi" name="amenities" value="WiFi">
+            <label for="amenity_wifi">WiFi</label>
+          </div>
+          <div class="amenity-option">
+            <input type="checkbox" id="amenity_parking" name="amenities" value="Parking">
+            <label for="amenity_parking">Parking</label>
+          </div>
+          <div class="amenity-option">
+            <input type="checkbox" id="amenity_kitchen" name="amenities" value="Kitchen">
+            <label for="amenity_kitchen">Kitchen</label>
+          </div>
+          <div class="amenity-option">
+            <input type="checkbox" id="amenity_furnished" name="amenities" value="Furnished">
+            <label for="amenity_furnished">Furnished</label>
+          </div>
+          <div class="amenity-option">
+            <input type="checkbox" id="amenity_ac" name="amenities" value="Air Conditioning">
+            <label for="amenity_ac">Air Conditioning</label>
+          </div>
+        </div>
 
         <label for="rules">Rules (optional)</label>
         <textarea id="rules" placeholder="e.g. No loud music after 10pm"></textarea>
@@ -411,6 +483,76 @@
     // API Configuration
     const API_BASE_URL = "https://bookit-api-tpvz.onrender.com";
     const LISTINGS_URL = `${API_BASE_URL}/api/listings/`;
+    const TOKEN_REFRESH_URL = `${API_BASE_URL}/api/auth/token/refresh/`;
+
+    // Token management functions
+    function isTokenExpired() {
+      const tokenExpiry = localStorage.getItem("tokenExpiry");
+      if (!tokenExpiry) return true;
+      return Date.now() > parseInt(tokenExpiry);
+    }
+
+    async function refreshAccessToken() {
+      const refreshToken = localStorage.getItem("refreshToken");
+      if (!refreshToken) {
+        console.log("No refresh token available");
+        return null;
+      }
+
+      try {
+        console.log("Refreshing access token...");
+        const response = await fetch(TOKEN_REFRESH_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ refresh: refreshToken })
+        });
+
+        if (!response.ok) {
+          console.error("Token refresh failed:", response.status);
+          return null;
+        }
+
+        const data = await response.json();
+        console.log("Token refreshed successfully");
+
+        // Store new access token
+        localStorage.setItem("accessToken", data.access);
+
+        // Set expiry (assuming 5 minutes = 300000 ms)
+        localStorage.setItem("tokenExpiry", Date.now() + 300000);
+
+        return data.access;
+      } catch (error) {
+        console.error("Token refresh error:", error);
+        return null;
+      }
+    }
+
+    async function getValidAccessToken() {
+      let accessToken = localStorage.getItem("accessToken");
+
+      // Check if token is expired
+      if (isTokenExpired()) {
+        console.log("Token is expired, refreshing...");
+        accessToken = await refreshAccessToken();
+
+        if (!accessToken) {
+          // If refresh fails, clear tokens and redirect to login
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("tokenExpiry");
+          showError("Your session has expired. Please login again.");
+          setTimeout(() => {
+            window.location.href = "login.html";
+          }, 2000);
+          return null;
+        }
+      }
+
+      return accessToken;
+    }
 
     // Check authentication on page load
     function checkAuthentication() {
@@ -419,7 +561,7 @@
       const accessToken = localStorage.getItem("accessToken");
       const authWarning = document.getElementById("authWarning");
 
-      console.log("Auth check:", { loggedInUser, userRole, accessToken });
+      console.log("Auth check:", { loggedInUser, userRole, hasToken: !!accessToken });
 
       if (!loggedInUser || userRole?.toLowerCase() !== "agent" || !accessToken) {
         authWarning.style.display = "block";
@@ -437,9 +579,15 @@
     }
 
     // Initialize authentication check
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       if (!checkAuthentication()) {
         return;
+      }
+
+      // Try to get a valid token on load
+      const validToken = await getValidAccessToken();
+      if (!validToken) {
+        showError("Please login again to post listings.");
       }
     });
 
@@ -586,60 +734,24 @@
       });
     }
 
-    // Convert images to base64 for API
-    async function convertImagesToBase64(images) {
-      const base64Images = [];
-      for (const img of images) {
-        const base64 = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(img.file);
-        });
-        // Extract base64 data (remove data URL prefix)
-        const base64Data = base64.split(',')[1];
-        base64Images.push(base64Data);
-      }
-      return base64Images;
+    // Get selected amenities as array
+    function getSelectedAmenities() {
+      const checkboxes = document.querySelectorAll('input[name="amenities"]:checked');
+      const amenities = Array.from(checkboxes).map(cb => cb.value);
+      return amenities;
     }
-
-    // Try to refresh token if expired
-  async function refreshTokenIfNeeded() {
-    const refreshToken = localStorage.getItem("refreshToken");
-    if (!refreshToken) return null;
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/token/refresh/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh: refreshToken })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem("accessToken", data.access);
-        return data.access;
-      }
-    } catch (error) {
-      console.error("Token refresh failed:", error);
-    }
-    return null;
-  }
 
     // Form submit handler
     const form = document.getElementById("multiStepForm");
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      let accessToken = localStorage.getItem("accessToken");
 
-    if (!accessToken) {
-      accessToken = await refreshTokenIfNeeded();
+      // Get valid access token before submitting
+      const accessToken = await getValidAccessToken();
       if (!accessToken) {
-        showError("Session expired. Please login again.");
+        showError("Authentication required. Please login again.");
         return;
       }
-    }
-
 
       // Check authentication again before submitting
       if (!checkAuthentication()) {
@@ -661,34 +773,23 @@
       setLoading(true);
 
       try {
-        // Get form data
+        // Get form data according to API schema
         const title = document.getElementById("title").value.trim();
         const location = document.getElementById("location").value;
         const bedrooms = parseInt(document.getElementById("bedrooms").value);
         const bathrooms = parseInt(document.getElementById("bathrooms").value);
         const price = parseFloat(document.getElementById("price").value);
         const description = document.getElementById("description").value.trim();
-        const amenities = document.getElementById("amenities").value.trim();
         const rules = document.getElementById("rules").value.trim();
 
-        // Get access token
-        let accessToken = localStorage.getItem("accessToken");
+        // Optional fields for future use
+        const room_type = document.getElementById("room_type").value;
+        const amenities = getSelectedAmenities();
 
-        // Try to refresh token if needed
-        if (!accessToken) {
-          accessToken = await refreshTokenIfNeeded();
-          if (!accessToken) {
-            throw new Error("Authentication required. Please login again.");
-          }
-        }
-
-        // Convert images to base64
-        console.log("Converting images to base64...");
-        const base64Images = await convertImagesToBase64(uploadedImages);
-        console.log(`Converted ${base64Images.length} images`);
-
-      // Prepare FormData
+        // Prepare FormData for multipart/form-data
         const formData = new FormData();
+
+        // Add text fields
         formData.append("title", title);
         formData.append("description", description);
         formData.append("price", price.toFixed(2));
@@ -696,27 +797,40 @@
         formData.append("bedrooms", bedrooms);
         formData.append("bathrooms", bathrooms);
 
-        // if (amenities) {
-        //   formData.append("amenities", amenities.split(',').map(a => a.trim()).filter(a => a).join(','));
-        // }
+        // Add optional rules if provided
+        if (rules) {
+          formData.append("rules", rules);
+        }
 
-        // if (rules) {
-        //   formData.append("rules", rules);
-        // }
-
-        // Append images as files (not base64!)
-        uploadedImages.forEach(img => {
-          formData.append("uploaded_images", img.file); // <--- key must match API field
+        // Add images as files - API expects "uploaded_images" as field name
+        uploadedImages.forEach((img, index) => {
+          formData.append("uploaded_images", img.file, img.name || `image_${index}.jpg`);
         });
 
-        console.log("Sending request to:", LISTINGS_URL);
-        console.log("Number of images:", uploadedImages.length);
+        // Store room_type and amenities in localStorage for future use
+        if (room_type) {
+          localStorage.setItem("last_room_type", room_type);
+        }
+        if (amenities.length > 0) {
+          localStorage.setItem("last_amenities", JSON.stringify(amenities));
+        }
 
-        // Send POST request with FormData
+        console.log("Sending request to:", LISTINGS_URL);
+        console.log("FormData entries:");
+        for (let [key, value] of formData.entries()) {
+          if (key === "uploaded_images") {
+            console.log(`${key}: File - ${value.name}, ${value.size} bytes`);
+          } else {
+            console.log(`${key}: ${value}`);
+          }
+        }
+
+        // Send POST request with FormData (multipart/form-data)
         const response = await fetch(LISTINGS_URL, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${accessToken}`, // DO NOT set Content-Type here
+            'Authorization': `Bearer ${accessToken}`,
+            // DO NOT set Content-Type header - browser will set it automatically with boundary
           },
           body: formData
         });
@@ -739,31 +853,43 @@
           let errorMsg = "Failed to create listing. ";
 
           if (response.status === 400) {
-            if (data.errors) {
-              Object.keys(data.errors).forEach(key => {
-                errorMsg += `${key}: ${Array.isArray(data.errors[key]) ? data.errors[key].join(', ') : data.errors[key]} `;
-              });
-            } else if (data.detail) {
+            // Validation errors
+            if (data.detail) {
               errorMsg += data.detail;
             } else if (data.non_field_errors) {
               errorMsg += data.non_field_errors.join(', ');
+            } else if (data.uploaded_images) {
+              // Image upload errors
+              errorMsg += "Image upload error: ";
+              Object.keys(data.uploaded_images).forEach(index => {
+                errorMsg += `Image ${parseInt(index) + 1}: ${data.uploaded_images[index].join(', ')}. `;
+              });
             } else {
-              errorMsg += "Validation error. Please check your input.";
+              // Show field-specific errors
+              const fieldErrors = [];
+              Object.keys(data).forEach(key => {
+                if (Array.isArray(data[key])) {
+                  fieldErrors.push(`${key}: ${data[key].join(', ')}`);
+                } else if (typeof data[key] === 'string') {
+                  fieldErrors.push(`${key}: ${data[key]}`);
+                }
+              });
+              if (fieldErrors.length > 0) {
+                errorMsg += fieldErrors.join('; ');
+              } else {
+                errorMsg += "Validation error. Please check your input.";
+              }
             }
           } else if (response.status === 401) {
-            // Token might be expired, try to refresh
-            const newToken = await refreshTokenIfNeeded();
-            if (newToken) {
-              showError("Session expired. Please try submitting again.");
-            } else {
-              errorMsg = "Authentication required. Please login again as an agent.";
-            }
+            errorMsg = "Session expired. Please login again.";
           } else if (response.status === 403) {
             errorMsg = "You don't have permission to create listings. Please ensure you're registered as an agent.";
+          } else if (response.status === 413) {
+            errorMsg = "Uploaded files are too large. Please reduce image sizes.";
           } else if (response.status === 415) {
-            errorMsg = "Unsupported media type. Please check your image formats (JPEG, PNG recommended).";
+            errorMsg = "Unsupported file type. Please upload JPEG or PNG images only.";
           } else {
-            errorMsg += `Server returned: ${response.status} ${response.statusText}`;
+            errorMsg += `Server error: ${response.status} ${response.statusText}`;
           }
 
           throw new Error(errorMsg);
@@ -777,6 +903,15 @@
         form.reset();
         uploadedImages = [];
         imagePreviewContainer.innerHTML = "";
+
+        // Uncheck all amenities checkboxes
+        document.querySelectorAll('input[name="amenities"]:checked').forEach(cb => {
+          cb.checked = false;
+        });
+
+        // Clear stored optional fields
+        localStorage.removeItem("last_room_type");
+        localStorage.removeItem("last_amenities");
 
         // Redirect after 2 seconds
         setTimeout(() => {

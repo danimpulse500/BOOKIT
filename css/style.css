@@ -333,7 +333,7 @@ body {
   flex-direction: column;
   transition: transform 0.3s, box-shadow 0.3s;
   width: 280px;
-  height: 300px;
+  height: fit-content;
 }
 
 .listing-card:hover {
@@ -513,7 +513,7 @@ body {
   .card-actions button {
     padding: 10px 0;
     font-size: 13px;
-    border-radius: 25px;
+    /* border-radius: 25px; */
   }
 
   .edit-btn:hover {

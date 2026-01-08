@@ -216,6 +216,18 @@
       font-weight: 700;
       color: #0a7cff;
     }
+
+    /* Room type display */
+    .room-type-display {
+      display: inline-block;
+      background: #0a7cff;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-left: 10px;
+    }
   </style>
 </head>
 
@@ -228,25 +240,25 @@
   </script>
 
   <!-- NAVBAR -->
-<header class="navbar">
-  <a href="index.html" class="logo">
-    <img src="logo.png" alt="Book-It Logo">
-  </a>
+  <header class="navbar">
+    <a href="index.html" class="logo">
+      <img src="logo.png" alt="Book-It Logo">
+    </a>
 
-  <!-- Desktop Menu -->
-  <nav class="menu-panel desktop-nav" id="navMenu">
-    <a href="index.html">Home</a>
-    <a href="contact.html">Contact/Support</a>
-    <a href="post.html" id="postLink">Post Lodge</a>
-    <div class="user-area" id="userArea"></div>
-  </nav>
+    <!-- Desktop Menu -->
+    <nav class="menu-panel desktop-nav" id="navMenu">
+      <a href="index.html">Home</a>
+      <a href="contact.html">Contact/Support</a>
+      <a href="post.html" id="postLink">Post Lodge</a>
+      <div class="user-area" id="userArea"></div>
+    </nav>
 
-  <!-- Mobile Menu Button -->
-  <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
 
-  <!-- Mobile Menu -->
-  <nav class="menu-panel mobile-nav" id="mobileNav"></nav>
-</header>
+    <!-- Mobile Menu -->
+    <nav class="menu-panel mobile-nav" id="mobileNav"></nav>
+  </header>
 
 
   <!-- MOBILE NAV DROPDOWN -->
@@ -260,7 +272,7 @@
   <footer class="footer">
     <p>© 2025 Book-It. Student housing made easy.</p>
   </footer>
-    <script src="js/main.js"></script>
+  <script src="js/main.js"></script>
 
   <script>
     // API Configuration
@@ -384,12 +396,27 @@
         // Create amenities list (if available in your data structure)
         let amenitiesHTML = '';
         if (listing.amenities) {
-          amenitiesHTML = `
-            <p><strong>Amenities:</strong></p>
-            <ul class="amenities-list">
-              ${listing.amenities.map(amenity => `<li>${amenity}</li>`).join('')}
-            </ul>
-          `;
+          // Handle both string and array formats
+          let amenitiesArray = [];
+          if (Array.isArray(listing.amenities)) {
+            amenitiesArray = listing.amenities;
+          } else if (typeof listing.amenities === 'string') {
+            // Try to parse as JSON or split by comma
+            try {
+              amenitiesArray = JSON.parse(listing.amenities);
+            } catch {
+              amenitiesArray = listing.amenities.split(',').map(a => a.trim());
+            }
+          }
+
+          if (amenitiesArray.length > 0) {
+            amenitiesHTML = `
+              <p><strong>Amenities:</strong></p>
+              <ul class="amenities-list">
+                ${amenitiesArray.map(amenity => `<li>${amenity}</li>`).join('')}
+              </ul>
+            `;
+          }
         } else if (listing.description) {
           // Extract potential amenities from description
           const commonAmenities = ['WiFi', 'Electricity', 'Water', 'Security', 'Parking', 'Furnished', 'Kitchen'];
@@ -407,13 +434,19 @@
           }
         }
 
+        // Add room type display if available
+        let roomTypeHTML = '';
+        if (listing.room_type) {
+          roomTypeHTML = `<span class="room-type-display">${listing.room_type}</span>`;
+        }
+
         // Render the listing details
         container.innerHTML = `
           <div class="details-card">
             ${listing.cover_image_url ? `<img src="${listing.cover_image_url}" alt="${listing.title}">` : ''}
             ${galleryHTML}
             
-            <h2>${listing.title}</h2>
+            <h2>${listing.title} ${roomTypeHTML}</h2>
             
             <div class="property-info">
               <div class="info-item">
@@ -424,11 +457,6 @@
               <div class="info-item">
                 <span class="label">Bedrooms</span>
                 <span class="value">${listing.bedrooms}</span>
-              </div>` : ''}
-              ${listing.bathrooms ? `
-              <div class="info-item">
-                <span class="label">Bathrooms</span>
-                <span class="value">${listing.bathrooms}</span>
               </div>` : ''}
               ${listing.rooms ? `
               <div class="info-item">
