@@ -579,9 +579,10 @@
   </footer>
 
   <script src="js/main.js"></script>
+  <script src="js/config.js"></script>
   <script>
     // API Configuration
-    const API_BASE_URL = "https://bookit-api-tpvz.onrender.com";
+    const API_BASE_URL = CONFIG.API_BASE_URL;
     const LISTINGS_URL = `${API_BASE_URL}/api/listings/`;
     const TOKEN_REFRESH_URL = `${API_BASE_URL}/api/auth/token/refresh/`;
     const LOCATIONS_URL = `${API_BASE_URL}/api/locations/`; // Add locations endpoint
@@ -957,39 +958,32 @@
         const is_available = document.getElementById("is_available").checked;
         const video = document.getElementById("video").value.trim() || null;
 
-        // Create JSON data
-        const listingData = {
-          lodge_name: lodge_name,
-          description: description,
-          price: price.toFixed(2),
-          location: location,
-          room_type: room_type,
-          amenities: amenities.length > 0 ? amenities : [],
-          total_rooms: total_rooms,
-          room_number: room_number,
-          is_available: is_available,
-          rules: rules,
-          contact_phone: contact_phone,
-          contact_email: contact_email,
-          agency: agency,
-          video: video
-          // Note: agent field will be automatically set by the API from the authenticated user
-        };
-
-        // Remove null fields from JSON
-        Object.keys(listingData).forEach(key => {
-          if (listingData[key] === null || listingData[key] === undefined) {
-            delete listingData[key];
-          }
-        });
-
-        console.log("Listing data:", listingData);
-
         // Prepare FormData for multipart/form-data
         const formData = new FormData();
 
-        // Add JSON data as a string
-        formData.append("data", JSON.stringify(listingData));
+        // Append simple fields
+        formData.append("lodge_name", lodge_name);
+        formData.append("description", description);
+        formData.append("price", price.toFixed(2));
+        formData.append("location", location);
+        formData.append("room_type", room_type);
+        formData.append("total_rooms", total_rooms);
+        formData.append("is_available", is_available);
+
+        // Handle optional fields
+        if (room_number) formData.append("room_number", room_number);
+        if (rules) formData.append("rules", rules);
+        if (contact_phone) formData.append("contact_phone", contact_phone);
+        if (contact_email) formData.append("contact_email", contact_email);
+        if (agency) formData.append("agency", agency);
+        if (video) formData.append("video", video);
+
+        // Handle amenities (Schema says string, so joining with commas)
+        if (amenities.length > 0) {
+          formData.append("amenities", amenities.join(", "));
+        } else {
+          formData.append("amenities", "");
+        }
 
         // Add images
         uploadedImages.forEach((img, index) => {
@@ -1031,8 +1025,6 @@
               errorMsg += data.detail;
             } else if (data.non_field_errors) {
               errorMsg += data.non_field_errors.join(', ');
-            } else if (data.uploaded_images) {
-              errorMsg += "Image upload error.";
             } else {
               // Show field-specific errors
               const fieldErrors = [];

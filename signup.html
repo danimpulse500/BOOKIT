@@ -138,12 +138,12 @@
       font-size: 14px;
       text-align: right;
     }
-    
-    button.password-toggle{
+
+    button.password-toggle {
       background-color: transparent;
-      
+
     }
-    
+
     .password-toggle:hover {
       color: #9c9b9b;
       background-color: transparent;
@@ -216,10 +216,11 @@
     </div>
   </div>
 
+  <script src="js/config.js"></script>
   <script>
     // API endpoint - Updated to match your provided URL
-    const API_BASE_URL = "https://bookit-api-tpvz.onrender.com";
-    const REGISTRATION_URL = `${API_BASE_URL}/api/auth/registration/`;
+    // API endpoint - Updated to match your provided URL
+    const REGISTRATION_URL = `${CONFIG.API_BASE_URL}/api/auth/registration/`;
 
     // Password visibility toggle function
     function togglePasswordVisibility(passwordFieldId, toggleButton) {

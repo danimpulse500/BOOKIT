@@ -64,7 +64,7 @@
       border-color: #0a7cff;
     }
 
-    .auth-box button {
+    .auth-box #login-btn {
       width: 100%;
       padding: 12px;
       background: #0a7cff;
@@ -76,11 +76,11 @@
       transition: background 0.3s;
     }
 
-    .auth-box button:hover {
+    .auth-box #login-btn:hover {
       background: #055ec2;
     }
 
-    .auth-box button:disabled {
+    .auth-box #login-btn:disabled {
       background: #ccc;
       cursor: not-allowed;
     }
@@ -128,6 +128,39 @@
         padding: 15px;
       }
     }
+
+    /* Password toggle styles from signup.html */
+    .password-field {
+      position: relative;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 2px;
+      top: 35%;
+      transform: translateY(-50%);
+      border: none;
+      cursor: pointer;
+      padding: 5px;
+      color: #666;
+      font-size: 14px;
+      text-align: right;
+    }
+
+    button.password-toggle {
+      background-color: transparent;
+    }
+
+    .password-toggle:hover {
+      color: #9c9b9b;
+      background-color: transparent;
+    }
+
+    .password-toggle svg {
+      display: block;
+      width: 20px;
+      height: 20px;
+    }
   </style>
 </head>
 
@@ -140,7 +173,15 @@
     <div class="loading" id="loading">Logging in...</div>
 
     <input type="email" id="email" placeholder="Email address" required>
-    <input type="password" id="password" placeholder="Password" required>
+    <div class="password-field">
+      <input type="password" id="password" placeholder="Password" required>
+      <button type="button" class="password-toggle" onclick="togglePasswordVisibility('password', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+      </button>
+    </div>
 
     <button onclick="login()" id="login-btn">Login</button>
 
@@ -148,11 +189,37 @@
       No account? <a href="signup.html">Sign up</a>
     </div>
   </div>
-
+  <script src="js/config.js"></script>
   <script>
     // API endpoint
-    const API_BASE_URL = "https://bookit-api-tpvz.onrender.com";
-    const LOGIN_URL = `${API_BASE_URL}/api/auth/login/`;
+    const LOGIN_URL = `${CONFIG.API_BASE_URL}/api/auth/login/`;
+
+    // Password visibility toggle function
+    function togglePasswordVisibility(passwordFieldId, toggleButton) {
+      const passwordField = document.getElementById(passwordFieldId);
+      const isPasswordVisible = passwordField.type === 'text';
+
+      // Toggle the input type
+      passwordField.type = isPasswordVisible ? 'password' : 'text';
+
+      // Update the icon
+      const svg = toggleButton.querySelector('svg');
+      if (isPasswordVisible) {
+        // Show eye (visible)
+        svg.innerHTML = `
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        `;
+        toggleButton.setAttribute('aria-label', 'Show password');
+      } else {
+        // Show eye-slash (hidden)
+        svg.innerHTML = `
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+          <line x1="1" y1="1" x2="23" y2="23"></line>
+        `;
+        toggleButton.setAttribute('aria-label', 'Hide password');
+      }
+    }
 
     // Show error message
     function showError(message) {
@@ -271,7 +338,7 @@
           console.log("Refresh token saved");
         }
 
-              // After successful login:
+        // After successful login:
         if (data.user && data.user.id) {
           localStorage.setItem("userId", data.user.id);
         } else if (data.id) {

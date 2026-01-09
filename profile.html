@@ -581,10 +581,10 @@
     <div class="profile-container" id="profileContainer">
       <!-- JS will fill profile info here -->
     </div>
-  <!-- FOOTER -->
-  <footer class="footer">
-    <p>© 2025 Book-It. Student housing made easy.</p>
-  </footer>
+    <!-- FOOTER -->
+    <footer class="footer">
+      <p>© 2025 Book-It. Student housing made easy.</p>
+    </footer>
 
     <script>
       document.addEventListener("DOMContentLoaded", () => {
@@ -626,6 +626,7 @@
     <!-- <div class="agent-listings" id="agentListings"></div> -->
 
     <script src="js/data.js"></script>
+    <script src="js/config.js"></script>
 
     <script>
       document.addEventListener("DOMContentLoaded", () => {
@@ -691,7 +692,7 @@
   </div>
 
   <script>
-    const API_BASE_URL = "https://bookit-api-tpvz.onrender.com";
+    const API_BASE_URL = CONFIG.API_BASE_URL;
     const CHANGE_PASSWORD_URL = `${API_BASE_URL}/api/auth/password/change/`;
 
     // Password visibility toggle function

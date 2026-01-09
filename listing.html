@@ -135,7 +135,7 @@
     <a href="index.html" class="logo">
       <img src="logo.png" alt="Book-It Logo">
     </a>
-  
+
     <!-- Desktop Menu -->
     <nav class="menu-panel desktop-nav" id="navMenu">
       <a href="index.html">Home</a>
@@ -143,10 +143,10 @@
       <a href="post.html" id="postLink">Post Lodge</a>
       <div class="user-area" id="userArea"></div>
     </nav>
-  
+
     <!-- Mobile Menu Button -->
     <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
-  
+
     <!-- Mobile Menu -->
     <nav class="menu-panel mobile-nav" id="mobileNav"></nav>
   </header>
@@ -168,9 +168,10 @@
   </footer>
 
   <script src="js/main.js"></script>
+  <script src="js/config.js"></script>
 
   <script>
-    const API_BASE = "https://bookit-api-tpvz.onrender.com/api";
+    const API_BASE = `${CONFIG.API_BASE_URL}/api`;
 
     // Check if user is logged in and is an agent
     document.addEventListener("DOMContentLoaded", async () => {
@@ -183,22 +184,8 @@
         return;
       }
 
-      // Update user area in navbar
-      const userArea = document.getElementById("userArea");
-      if (userArea) {
-        userArea.innerHTML = `
-          <span style="margin-right: 10px;">Welcome, ${userName}</span>
-          <button onclick="logout()" style="
-            background: transparent;
-            border: 1px solid white;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-          ">Logout</button>
-        `;
-      }
+      // Update user area in navbar - Handled by main.js
+
 
       // Load agent's listings
       try {

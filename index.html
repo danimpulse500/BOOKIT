@@ -102,8 +102,9 @@
   <!-- API SCRIPT -->
   <script src="js/main.js"></script>
 
+  <script src="js/config.js"></script>
   <script>
-    const API_BASE = "https://bookit-api-tpvz.onrender.com/api";
+    const API_BASE = `${CONFIG.API_BASE_URL}/api`;
 
     // Helper function to fetch listings
     async function fetchListings() {
