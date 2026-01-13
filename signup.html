@@ -219,7 +219,6 @@
   <script src="js/config.js"></script>
   <script>
     // API endpoint - Updated to match your provided URL
-    // API endpoint - Updated to match your provided URL
     const REGISTRATION_URL = `${CONFIG.API_BASE_URL}/api/auth/registration/`;
 
     // Password visibility toggle function
@@ -367,24 +366,18 @@
           throw new Error(errorMsg);
         }
 
-        // Success - Save user info locally
+        // Success - Show verification message instead of auto-login
         console.log("Registration successful:", data);
 
-        // Save user info to localStorage
-        localStorage.setItem("loggedInUser", "true");
-        localStorage.setItem("userName", full_name);
-        localStorage.setItem("userRole", role);
-        localStorage.setItem("userEmail", email);
-        // After successful signup:
-        if (data.user && data.user.id) {
-          localStorage.setItem("userId", data.user.id);
-        } else if (data.id) {
-          localStorage.setItem("userId", data.id);
-        }
+        // Clear the form
+        document.getElementById("full_name").value = "";
+        document.getElementById("email").value = "";
+        document.getElementById("password1").value = "";
+        document.getElementById("password2").value = "";
+        document.getElementById("phone_number").value = "";
 
-        // Show success message and redirect
-        alert("Signup successful! You will be redirected to the home page.");
-        window.location.href = "index.html";
+        // Show success message about email verification
+        showVerificationMessage(email);
 
       } catch (err) {
         console.error("Registration error:", err);
@@ -403,6 +396,71 @@
         showError(errorMessage);
       } finally {
         setLoading(false);
+      }
+    }
+
+    // Function to show verification instructions
+    function showVerificationMessage(userEmail) {
+      const authBox = document.querySelector('.auth-box');
+      authBox.innerHTML = `
+        <h2>Verify Your Email</h2>
+        <div style="text-align: center; padding: 20px;">
+          <div style="font-size: 48px; color: #0a7cff; margin-bottom: 20px;">✉️</div>
+          <h3>Check Your Email</h3>
+          <p>We've sent a verification link to:</p>
+          <p><strong>${userEmail}</strong></p>
+          <p>Please click the link in the email to activate your account.</p>
+          <div style="margin: 30px 0;">
+            <button onclick="resendVerificationEmail('${userEmail}')" 
+                    style="background: #0a7cff; color: white; border: none; 
+                           padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+              Resend Verification Email
+            </button>
+            <button onclick="window.location.href='login.html'" 
+                    style="background: #f0f0f0; color: #333; border: 1px solid #ddd; 
+                           padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+              Go to Login
+            </button>
+          </div>
+          <p><small>Didn't receive the email? Check your spam folder.</small></p>
+        </div>
+      `;
+    }
+
+    // Function to resend verification email
+    async function resendVerificationEmail(email) {
+      try {
+        const response = await fetch(`${CONFIG.API_BASE_URL}/api/auth/registration/resend-email/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: email })
+        });
+        
+        const responseText = await response.text();
+        let data = {};
+        
+        try {
+          if (responseText) {
+            data = JSON.parse(responseText);
+          }
+        } catch (parseError) {
+          console.log("Could not parse response as JSON");
+        }
+        
+        if (response.ok) {
+          alert("✓ Verification email resent! Please check your inbox.");
+        } else {
+          let errorMsg = "Failed to resend verification email.";
+          if (data.detail) {
+            errorMsg += ` Error: ${data.detail}`;
+          }
+          alert(errorMsg);
+        }
+      } catch (error) {
+        console.error("Resend error:", error);
+        alert("Failed to resend verification email. Please try again later.");
       }
     }
 
