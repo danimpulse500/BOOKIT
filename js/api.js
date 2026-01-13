@@ -112,7 +112,7 @@ async function createListing(listingData, token) {
 async function verifyEmail(key) {
     // Note: The endpoint /auth/registration/verify-email/ expects a POST with { "key": "..." }
     return await apiRequest("/auth/registration/verify-email/", "POST", { key })
-
+ }
 
 // This code should run on the page corresponding to:
 // yourfrontend.com
