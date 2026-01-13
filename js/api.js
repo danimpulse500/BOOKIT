@@ -111,47 +111,30 @@ async function createListing(listingData, token) {
 
 async function verifyEmail(key) {
     // Note: The endpoint /auth/registration/verify-email/ expects a POST with { "key": "..." }
-    return await apiRequest("/auth/registration/verify-email/", "POST", { key })
+    return await apiRequest("/api/auth/registration/verify-email/", "POST", { key })
  }
 
 // This code should run on the page corresponding to:
 // yourfrontend.com
 
 async function handleVerification() {
-  // 1. Get the key from the URL
-  const urlPath = window.location.pathname;
-  const pathParts = urlPath.split('/');
-  const key = pathParts[pathParts.length - 2];
-  
-  if (key) {
-    try {
-      console.log("Verifying email with key:", key);
-      
-      // Send verification request to YOUR BACKEND
-      // NOT to the frontend URL
-      const response = await fetch(`https://bookit-api-tpvz.onrender.com/api/auth/registration/verify-email/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ key: key })
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        console.log("Email verified successfully!", data);
-        alert("Email verified! You can now log in.");
-        window.location.href = "/login"; // Redirect to login
-      } else {
-        console.error("Verification failed:", data);
-        alert(data.detail || "Verification link invalid or expired.");
-      }
-    } catch (error) {
-      console.error("Verification error:", error);
-      alert("Failed to connect to verification server.");
+    // 1. Get the key from the URL (e.g., /account-confirm-email/MzI:1vfjlu:.../)
+    const urlPath = window.location.pathname;
+    const pathParts = urlPath.split('/');
+    const key = pathParts[pathParts.length - 2]; // Grabs the key segment
+
+    if (key) {
+        try {
+            console.log("Verifying email with key:", key);
+            const response = await verifyEmail(key);
+            console.log("Email verified successfully!", response);
+            alert("Email verified! You can now log in.");
+            window.location.href = "/login"; // Redirect to login
+        } catch (error) {
+            console.error("Verification failed:", error);
+            alert("Verification link invalid or expired.");
+        }
     }
-  }
 }
 
 // Call on page load
