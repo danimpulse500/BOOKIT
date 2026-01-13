@@ -107,3 +107,35 @@ async function createListing(listingData, token) {
 //     uploaded_images: ["https://example.com/image1.jpg"]
 // }, token).then(res => console.log("Listing created:", res))
 //   .catch(err => console.error(err));
+
+
+async function verifyEmail(key) {
+    // Note: The endpoint /auth/registration/verify-email/ expects a POST with { "key": "..." }
+    return await apiRequest("/auth/registration/verify-email/", "POST", { key })
+
+
+// This code should run on the page corresponding to:
+// yourfrontend.com
+
+async function handleVerification() {
+    // 1. Get the key from the URL (e.g., /account-confirm-email/MzI:1vfjlu:.../)
+    const urlPath = window.location.pathname;
+    const pathParts = urlPath.split('/');
+    const key = pathParts[pathParts.length - 2]; // Grabs the key segment
+
+    if (key) {
+        try {
+            console.log("Verifying email with key:", key);
+            const response = await verifyEmail(key);
+            console.log("Email verified successfully!", response);
+            alert("Email verified! You can now log in.");
+            window.location.href = "/login"; // Redirect to login
+        } catch (error) {
+            console.error("Verification failed:", error);
+            alert("Verification link invalid or expired.");
+        }
+    }
+}
+
+// Call on page load
+handleVerification();

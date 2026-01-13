@@ -464,52 +464,52 @@
         <label>Amenities <span class="optional">(Optional)</span></label>
         <div class="amenities-grid">
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_water" name="amenities" value="Water Supply">
-            <label for="amenity_water">Water Supply</label>
-          </div>
-          <div class="amenity-option">
-            <input type="checkbox" id="amenity_electricity" name="amenities" value="Electricity">
-            <label for="amenity_electricity">Electricity</label>
-          </div>
-          <div class="amenity-option">
-            <input type="checkbox" id="amenity_security" name="amenities" value="Security">
-            <label for="amenity_security">Security</label>
-          </div>
-          <div class="amenity-option">
-            <input type="checkbox" id="amenity_wifi" name="amenities" value="WiFi">
+            <input type="checkbox" id="amenity_wifi" name="amenities" value="WIFI">
             <label for="amenity_wifi">WiFi</label>
           </div>
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_parking" name="amenities" value="Parking">
+            <input type="checkbox" id="amenity_parking" name="amenities" value="PARKING">
             <label for="amenity_parking">Parking</label>
           </div>
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_kitchen" name="amenities" value="Kitchen">
-            <label for="amenity_kitchen">Kitchen</label>
+            <input type="checkbox" id="amenity_pool" name="amenities" value="POOL">
+            <label for="amenity_pool">Swimming Pool</label>
           </div>
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_furnished" name="amenities" value="Furnished">
-            <label for="amenity_furnished">Furnished</label>
+            <input type="checkbox" id="amenity_gym" name="amenities" value="GYM">
+            <label for="amenity_gym">Gym</label>
           </div>
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_ac" name="amenities" value="Air Conditioning">
+            <input type="checkbox" id="amenity_ac" name="amenities" value="AC">
             <label for="amenity_ac">Air Conditioning</label>
           </div>
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_generator" name="amenities" value="Generator">
-            <label for="amenity_generator">Generator</label>
+            <input type="checkbox" id="amenity_security" name="amenities" value="SECURITY">
+            <label for="amenity_security">24/7 Security</label>
           </div>
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_laundry" name="amenities" value="Laundry">
-            <label for="amenity_laundry">Laundry</label>
+            <input type="checkbox" id="amenity_power" name="amenities" value="POWER">
+            <label for="amenity_power">Power Backup</label>
+          </div>
+          <div class="amenity-option">
+            <input type="checkbox" id="amenity_balcony" name="amenities" value="BALCONY">
+            <label for="amenity_balcony">Balcony</label>
+          </div>
+          <div class="amenity-option">
+            <input type="checkbox" id="amenity_furnished" name="amenities" value="FURNISHED">
+            <label for="amenity_furnished">Furnished</label>
+          </div>
+          <div class="amenity-option">
+            <input type="checkbox" id="amenity_kitchen" name="amenities" value="KITCHEN">
+            <label for="amenity_kitchen">Kitchen</label>
           </div>
           <div class="amenity-option">
             <input type="checkbox" id="amenity_tv" name="amenities" value="TV">
             <label for="amenity_tv">TV</label>
           </div>
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_refrigerator" name="amenities" value="Refrigerator">
-            <label for="amenity_refrigerator">Refrigerator</label>
+            <input type="checkbox" id="amenity_washer" name="amenities" value="WASHER">
+            <label for="amenity_washer">Washing Machine</label>
           </div>
         </div>
 
@@ -545,9 +545,9 @@
           <label for="is_available">This property is currently available</label>
         </div>
 
-        <label for="video">Video URL <span class="optional">(Optional)</span></label>
-        <input type="url" id="video" placeholder="https://example.com/video.mp4">
-        <div class="info-text">Upload video to Cloudinary and paste the URL here</div>
+        <label for="video">Upload Video <span class="optional">(Optional)</span></label>
+        <input type="file" id="video" accept="video/*">
+        <div class="info-text">Supported formats: MP4, WebM</div>
 
         <label for="images">Upload Images *</label>
         <input type="file" id="images" accept="image/*" multiple required>
@@ -656,67 +656,32 @@
       return accessToken;
     }
 
-    // Load locations from API
-    async function loadLocations() {
-      try {
-        const accessToken = await getValidAccessToken();
-        const response = await fetch(LOCATIONS_URL, {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        });
+    // Load locations from Static Choices (Matching Backend)
+    function loadLocations() {
+      const locationSelect = document.getElementById('location');
+      const infoText = locationSelect.nextElementSibling;
 
-        if (response.ok) {
-          const locations = await response.json();
-          const locationSelect = document.getElementById('location');
-          const infoText = locationSelect.nextElementSibling;
+      // Define choices matching Django model
+      const locations = [
+        { value: 'IFITE_ANAMBRA', label: 'Ifite, Anambra state' },
+        { value: 'LAGOS', label: 'Lagos' },
+        { value: 'ABUJA', label: 'Abuja' },
+        { value: 'ENUGU', label: 'Enugu' },
+        { value: 'PH', label: 'Port Harcourt' },
+        { value: 'OTHER', label: 'Other' }
+      ];
 
-          locationSelect.innerHTML = '<option value="">Select Location</option>';
+      locationSelect.innerHTML = '<option value="">Select Location</option>';
 
-          if (locations.length === 0) {
-            infoText.textContent = "No locations available. Please contact support.";
-            infoText.style.color = "#dc3545";
-            return;
-          }
+      locations.forEach(loc => {
+        const option = document.createElement('option');
+        option.value = loc.value;
+        option.textContent = loc.label;
+        locationSelect.appendChild(option);
+      });
 
-          locations.forEach(location => {
-            const option = document.createElement('option');
-            option.value = location.id;
-            option.textContent = location.name;
-            locationSelect.appendChild(option);
-          });
-
-          infoText.textContent = `${locations.length} location(s) loaded`;
-          infoText.style.color = "#28a745";
-        } else {
-          const infoText = document.querySelector('.info-text');
-          infoText.textContent = "Failed to load locations. Using default options.";
-          infoText.style.color = "#dc3545";
-
-          // Add default options as fallback
-          const defaultLocations = [
-            { id: 1, name: "Ifite-Up School" },
-            { id: 2, name: "Ifite-Down School" },
-            { id: 3, name: "Amansea" },
-            { id: 4, name: "Temp Site" },
-            { id: 5, name: "Aroma" }
-          ];
-
-          const locationSelect = document.getElementById('location');
-          defaultLocations.forEach(location => {
-            const option = document.createElement('option');
-            option.value = location.id;
-            option.textContent = location.name;
-            locationSelect.appendChild(option);
-          });
-        }
-      } catch (error) {
-        console.error("Failed to load locations:", error);
-        const infoText = document.querySelector('.info-text');
-        infoText.textContent = "Error loading locations. Please check connection.";
-        infoText.style.color = "#dc3545";
-      }
+      infoText.textContent = "Locations loaded";
+      infoText.style.color = "#28a745";
     }
 
     // Check authentication on page load
@@ -756,8 +721,8 @@
         return;
       }
 
-      // Load locations from API
-      await loadLocations();
+      // Load locations (Static)
+      loadLocations();
     });
 
     const steps = document.querySelectorAll(".form-step");
@@ -944,7 +909,7 @@
       try {
         // Get form data according to API schema
         const lodge_name = document.getElementById("lodge_name").value.trim();
-        const location = parseInt(document.getElementById("location").value);
+        const location = document.getElementById("location").value;
         const room_type = document.getElementById("room_type").value;
         const total_rooms = parseInt(document.getElementById("total_rooms").value);
         const room_number = document.getElementById("room_number").value.trim() || null;
@@ -956,12 +921,12 @@
         const contact_email = document.getElementById("contact_email").value.trim() || null;
         const agency = document.getElementById("agency").value.trim() || null;
         const is_available = document.getElementById("is_available").checked;
-        const video = document.getElementById("video").value.trim() || null;
+        const videoInput = document.getElementById("video");
 
         // Prepare FormData for multipart/form-data
         const formData = new FormData();
 
-        // Append simple fields
+        // 1. Append simple fields
         formData.append("lodge_name", lodge_name);
         formData.append("description", description);
         formData.append("price", price.toFixed(2));
@@ -970,19 +935,24 @@
         formData.append("total_rooms", total_rooms);
         formData.append("is_available", is_available);
 
-        // Handle optional fields
         if (room_number) formData.append("room_number", room_number);
         if (rules) formData.append("rules", rules);
         if (contact_phone) formData.append("contact_phone", contact_phone);
         if (contact_email) formData.append("contact_email", contact_email);
         if (agency) formData.append("agency", agency);
-        if (video) formData.append("video", video);
 
-        // Handle amenities (Schema says string, so joining with commas)
+        // 2. Append Arrays (Amenities)
+        // CRITICAL: Append the same key multiple times for arrays in FormData
         if (amenities.length > 0) {
-          formData.append("amenities", amenities.join(", "));
-        } else {
-          formData.append("amenities", "");
+          amenities.forEach(amenity => {
+            formData.append("amenities", amenity);
+          });
+        }
+
+        // 3. Append Files
+        // Video
+        if (videoInput && videoInput.files.length > 0) {
+          formData.append("video", videoInput.files[0]);
         }
 
         // Add images
@@ -1025,6 +995,8 @@
               errorMsg += data.detail;
             } else if (data.non_field_errors) {
               errorMsg += data.non_field_errors.join(', ');
+            } else if (data.uploaded_images) {
+              errorMsg += "Image upload error.";
             } else {
               // Show field-specific errors
               const fieldErrors = [];
