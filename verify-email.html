@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification - BookIt</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a7cff, #005bd1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .email-display {
+            background: #f5f9ff;
+            border: 1px solid #e0e7ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-weight: 600;
+            color: #0a7cff;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .status.loading {
+            background: #e3f2fd;
+            color: #1976d2;
+            display: block;
+        }
+        
+        .status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            display: none;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            display: none;
+        }
+        
+        .btn {
+            background: #0a7cff;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #005bd1;
+        }
+        
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0a7cff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">✉️</div>
+        <h1>Email Verification</h1>
+        
+        <div class="status loading" id="loadingStatus">
+            <div class="spinner"></div>
+            <p>Verifying your email address...</p>
+        </div>
+        
+        <div class="status success" id="successStatus">
+            <h2>✅ Verification Successful!</h2>
+            <p>Your email has been verified successfully. You can now log in to your account.</p>
+            <a href="login.html" class="btn">Go to Login</a>
+        </div>
+        
+        <div class="status error" id="errorStatus">
+            <h2>❌ Verification Failed</h2>
+            <p id="errorMessage">The verification link is invalid or has expired.</p>
+            <div>
+                <a href="signup.html" class="btn">Sign Up Again</a>
+                <a href="index.html" class="btn btn-secondary">Go to Home</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'https://bookit-api-tpvz.onrender.com';
+        
+        // Extract key from URL
+        function getVerificationKey() {
+            const path = window.location.pathname;
+            const parts = path.split('/');
+            
+            // Handle different URL patterns
+            for (let i = parts.length - 1; i >= 0; i--) {
+                if (parts[i] && parts[i].includes(':')) {
+                    return parts[i];
+                }
+            }
+            
+            // Try query parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('key') || null;
+        }
+        
+        // Send verification to backend
+        async function verifyEmail(key) {
+            try {
+                console.log('Sending verification request for key:', key);
+                
+                const response = await fetch(`${API_BASE_URL}/api/auth/registration/verify-email/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ key: key })
+                });
+                
+                console.log('Response status:', response.status);
+                
+                const responseText = await response.text();
+                let data = {};
+                
+                try {
+                    if (responseText) {
+                        data = JSON.parse(responseText);
+                    }
+                } catch (e) {
+                    console.log('Could not parse JSON:', responseText);
+                    data = { detail: responseText };
+                }
+                
+                if (response.ok) {
+                    return {
+                        success: true,
+                        data: data
+                    };
+                } else {
+                    return {
+                        success: false,
+                        error: data.detail || data.error || `Server error: ${response.status}`
+                    };
+                }
+            } catch (error) {
+                console.error('Verification error:', error);
+                return {
+                    success: false,
+                    error: 'Failed to connect to server. Please check your internet connection.'
+                };
+            }
+        }
+        
+        // Update UI based on verification result
+        function updateUI(result) {
+            const loadingEl = document.getElementById('loadingStatus');
+            const successEl = document.getElementById('successStatus');
+            const errorEl = document.getElementById('errorStatus');
+            const errorMsgEl = document.getElementById('errorMessage');
+            
+            // Hide loading
+            loadingEl.style.display = 'none';
+            
+            if (result.success) {
+                // Show success
+                successEl.style.display = 'block';
+                console.log('Verification successful:', result.data);
+                
+                // Store verification status
+                localStorage.setItem('email_verified', 'true');
+                localStorage.setItem('last_verification', new Date().toISOString());
+            } else {
+                // Show error
+                errorEl.style.display = 'block';
+                errorMsgEl.textContent = result.error;
+                console.error('Verification failed:', result.error);
+            }
+        }
+        
+        // Main verification handler
+        async function handleVerification() {
+            const key = getVerificationKey();
+            
+            if (!key) {
+                updateUI({
+                    success: false,
+                    error: 'No verification key found in the URL. Please use the link from your email.'
+                });
+                return;
+            }
+            
+            console.log('Found verification key:', key);
+            
+            // Verify the email
+            const result = await verifyEmail(key);
+            updateUI(result);
+        }
+        
+        // Start verification when page loads
+        document.addEventListener('DOMContentLoaded', handleVerification);
+    </script>
+</body>
+</html>

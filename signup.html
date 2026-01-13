@@ -400,32 +400,33 @@
     }
 
     // Function to show verification instructions
-    function showVerificationMessage(userEmail) {
-      const authBox = document.querySelector('.auth-box');
-      authBox.innerHTML = `
-        <h2>Verify Your Email</h2>
-        <div style="text-align: center; padding: 20px;">
-          <div style="font-size: 48px; color: #0a7cff; margin-bottom: 20px;">✉️</div>
-          <h3>Check Your Email</h3>
-          <p>We've sent a verification link to:</p>
-          <p><strong>${userEmail}</strong></p>
-          <p>Please click the link in the email to activate your account.</p>
-          <div style="margin: 30px 0;">
-            <button onclick="resendVerificationEmail('${userEmail}')" 
-                    style="background: #0a7cff; color: white; border: none; 
-                           padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
-              Resend Verification Email
-            </button>
-            <button onclick="window.location.href='login.html'" 
-                    style="background: #f0f0f0; color: #333; border: 1px solid #ddd; 
-                           padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-              Go to Login
-            </button>
-          </div>
-          <p><small>Didn't receive the email? Check your spam folder.</small></p>
-        </div>
-      `;
-    }
+function showVerificationMessage(email) {
+  const authBox = document.querySelector('.auth-box');
+  authBox.innerHTML = `
+    <h2>Verify Your Email</h2>
+    <div style="text-align: center; padding: 20px;">
+      <div style="font-size: 48px; color: #0a7cff; margin-bottom: 20px;">✉️</div>
+      <h3>Almost Done!</h3>
+      <p>We've sent a verification email to:</p>
+      <div class="email-display" style="background: #f5f9ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
+        <strong>${email}</strong>
+      </div>
+      <p>Click the link in the email to verify your account.</p>
+      <p><small>Didn't receive it? Check your spam folder.</small></p>
+      <div style="margin: 30px 0;">
+        <button onclick="resendVerificationEmail('${email}')" class="btn">
+          Resend Verification Email
+        </button>
+        <button onclick="window.location.href='login.html'" class="btn btn-secondary">
+          Go to Login
+        </button>
+      </div>
+      <p style="font-size: 12px; color: #666; margin-top: 20px;">
+        Verification link expires in 24 hours
+      </p>
+    </div>
+  `;
+}
 
     // Function to resend verification email
     async function resendVerificationEmail(email) {
