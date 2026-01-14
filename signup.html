@@ -333,26 +333,34 @@
     }
 
     // Function to handle Google Sign In
-    function signInWithGoogle() {
-      // Redirect to Django's Google OAuth endpoint
-      window.location.href = GOOGLE_AUTH_URL;
-      
-      // Alternative: If you want to open in a popup window
-      /*
-      const width = 600;
-      const height = 600;
-      const left = (window.innerWidth - width) / 2;
-      const top = (window.innerHeight - height) / 2;
-      
-      window.open(
-        GOOGLE_AUTH_URL,
-        'Google Sign In',
-        `width=${width},height=${height},top=${top},left=${left}`
-      );
-      */
-    }
+function signInWithGoogle() {
+    const clientId = "YOUR_GOOGLE_CLIENT_ID"; 
+    const redirectUri = "https://bookit-ecru-sigma.vercel.app"; // Must match Google Console
+    const scope = "openid email profile";
+    
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+        `client_id=${clientId}&` +
+        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+        `response_type=code&` +
+        `scope=${encodeURIComponent(scope)}&` +
+        `access_type=offline&prompt=consent`;
 
-    // Signup function with better error handling
+    window.location.href = authUrl;
+}
+    
+async function exchangeCodeForToken() {
+    const code = new URLSearchParams(window.location.search).get('code');
+    if (code) {
+        const response = await fetch("https://bookit-api-tpvz.onrender.com", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: code })
+        });
+        const data = await response.json();
+        // Save the received token (e.g., localStorage.setItem('token', data.key))
+    }
+}
+// Signup function with better error handling
     window.signup = async function () {
       hideError();
       setLoading(true);
