@@ -80,6 +80,55 @@
       background: #055ec2;
     }
 
+    /* Google Sign In Button Styles */
+    .google-btn {
+      width: 100%;
+      padding: 12px;
+      background: #fff;
+      color: #333;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+      margin-bottom: 15px;
+    }
+
+    .google-btn:hover {
+      background: #f8f9fa;
+      border-color: #ccc;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .google-btn img {
+      width: 18px;
+      height: 18px;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .divider span {
+      padding: 0 15px;
+    }
+
     .auth-footer {
       text-align: center;
       margin-top: 15px;
@@ -211,6 +260,22 @@
 
     <button onclick="signup()" id="signup-btn" class="SignUp">Sign Up</button>
 
+    <!-- Divider between regular signup and Google signup -->
+    <div class="divider">
+      <span>OR</span>
+    </div>
+
+    <!-- Google Sign In Button -->
+    <button class="google-btn" onclick="signInWithGoogle()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px">
+        <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
+        <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
+        <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
+        <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
+      </svg>
+      Continue with Google
+    </button>
+
     <div class="auth-footer">
       Already have an account? <a href="login.html">Login</a>
     </div>
@@ -218,8 +283,9 @@
 
   <script src="js/config.js"></script>
   <script>
-    // API endpoint - Updated to match your provided URL
+    // API endpoints
     const REGISTRATION_URL = `${CONFIG.API_BASE_URL}/api/auth/registration/`;
+    const GOOGLE_AUTH_URL = `${CONFIG.API_BASE_URL}/api/auth/google/`;
 
     // Password visibility toggle function
     function togglePasswordVisibility(passwordFieldId, toggleButton) {
@@ -264,6 +330,26 @@
     function setLoading(isLoading) {
       document.getElementById("loading").style.display = isLoading ? "block" : "none";
       document.getElementById("signup-btn").disabled = isLoading;
+    }
+
+    // Function to handle Google Sign In
+    function signInWithGoogle() {
+      // Redirect to Django's Google OAuth endpoint
+      window.location.href = GOOGLE_AUTH_URL;
+      
+      // Alternative: If you want to open in a popup window
+      /*
+      const width = 600;
+      const height = 600;
+      const left = (window.innerWidth - width) / 2;
+      const top = (window.innerHeight - height) / 2;
+      
+      window.open(
+        GOOGLE_AUTH_URL,
+        'Google Sign In',
+        `width=${width},height=${height},top=${top},left=${left}`
+      );
+      */
     }
 
     // Signup function with better error handling
@@ -400,33 +486,33 @@
     }
 
     // Function to show verification instructions
-function showVerificationMessage(email) {
-  const authBox = document.querySelector('.auth-box');
-  authBox.innerHTML = `
-    <h2>Verify Your Email</h2>
-    <div style="text-align: center; padding: 20px;">
-      <div style="font-size: 48px; color: #0a7cff; margin-bottom: 20px;">✉️</div>
-      <h3>Almost Done!</h3>
-      <p>We've sent a verification email to:</p>
-      <div class="email-display" style="background: #f5f9ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
-        <strong>${email}</strong>
-      </div>
-      <p>Click the link in the email to verify your account.</p>
-      <p><small>Didn't receive it? Check your spam folder.</small></p>
-      <div style="margin: 30px 0;">
-        <button onclick="resendVerificationEmail('${email}')" class="btn">
-          Resend Verification Email
-        </button>
-        <button onclick="window.location.href='login.html'" class="btn btn-secondary">
-          Go to Login
-        </button>
-      </div>
-      <p style="font-size: 12px; color: #666; margin-top: 20px;">
-        Verification link expires in 24 hours
-      </p>
-    </div>
-  `;
-}
+    function showVerificationMessage(email) {
+      const authBox = document.querySelector('.auth-box');
+      authBox.innerHTML = `
+        <h2>Verify Your Email</h2>
+        <div style="text-align: center; padding: 20px;">
+          <div style="font-size: 48px; color: #0a7cff; margin-bottom: 20px;">✉️</div>
+          <h3>Almost Done!</h3>
+          <p>We've sent a verification email to:</p>
+          <div class="email-display" style="background: #f5f9ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <strong>${email}</strong>
+          </div>
+          <p>Click the link in the email to verify your account.</p>
+          <p><small>Didn't receive it? Check your spam folder.</small></p>
+          <div style="margin: 30px 0;">
+            <button onclick="resendVerificationEmail('${email}')" class="btn">
+              Resend Verification Email
+            </button>
+            <button onclick="window.location.href='login.html'" class="btn btn-secondary">
+              Go to Login
+            </button>
+          </div>
+          <p style="font-size: 12px; color: #666; margin-top: 20px;">
+            Verification link expires in 24 hours
+          </p>
+        </div>
+      `;
+    }
 
     // Function to resend verification email
     async function resendVerificationEmail(email) {
