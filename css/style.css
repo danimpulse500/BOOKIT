@@ -302,6 +302,11 @@ body {
   text-transform: capitalize;
 }
 
+.container{
+  display: flex;
+  justify-content: center;
+}
+
 /* =========================
    LISTINGS & CARDS
 ========================= */
@@ -312,7 +317,7 @@ body {
   gap: 20px;
   /* spacing between items */
   padding: 20px;
-  justify-content: center;
+  /* justify-content: center; */
   /* center items horizontally */
 }
 
