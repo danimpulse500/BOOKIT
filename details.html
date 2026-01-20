@@ -736,30 +736,48 @@
 
     // Map amenities to icons
     const amenityIcons = {
-      'WiFi': 'wifi',
-      'Electricity': 'bolt',
-      'Water': 'faucet',
-      'Security': 'shield-alt',
-      'Parking': 'parking',
-      'Furnished': 'couch',
-      'Kitchen': 'utensils',
-      'AC': 'snowflake',
-      'TV': 'tv',
-      'Laundry': 'tshirt',
-      'Gym': 'dumbbell',
-      'Pool': 'swimming-pool'
+      'wifi': 'wifi',
+      'electricity': 'bolt',
+      'water': 'faucet',
+      'security': 'shield-alt',
+      'parking': 'parking',
+      'furnished': 'couch',
+      'kitchen': 'utensils',
+      'ac': 'snowflake',
+      'air conditioning': 'snowflake',
+      'tv': 'tv',
+      'laundry': 'tshirt',
+      'gym': 'dumbbell',
+      'pool': 'swimming-pool',
+      'power backup': 'plug',
+      'balcony': 'door-open',
+      'washer': 'tshirt',
+      'washing machine': 'tshirt'
     };
 
     // Fetch listing details from API
     async function fetchListingDetails(listingId) {
       try {
+        console.log(`Fetching listing details for ID: ${listingId}`);
         const response = await fetch(`${API_BASE_URL}/api/listings/${listingId}/`, {
           method: 'GET',
-          headers: { 'Accept': 'application/json' }
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
         });
 
-        if (!response.ok) throw new Error(`Failed to fetch listing: ${response.status}`);
-        return await response.json();
+        console.log(`Response status: ${response.status}`);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Response error:', errorText);
+          throw new Error(`Failed to fetch listing: ${response.status} - ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Fetched listing data:', data);
+        return data;
       } catch (error) {
         console.error('Error fetching listing:', error);
         throw error;
@@ -768,6 +786,9 @@
 
     // Generate WhatsApp link
     function generateWhatsAppLink(phoneNumber, listingTitle) {
+      if (!phoneNumber) {
+        phoneNumber = '2348000000000'; // Default number
+      }
       const cleanPhone = phoneNumber.replace(/\D/g, '');
       const whatsappNumber = cleanPhone.startsWith('234') ? cleanPhone : '234' + cleanPhone.slice(-10);
       const message = `Hello! I'm interested in your property: ${listingTitle}. I saw it on Book-It.`;
@@ -777,18 +798,53 @@
 
     // Generate call link
     function generateCallLink(phoneNumber) {
+      if (!phoneNumber) {
+        phoneNumber = '+2348000000000'; // Default number
+      }
       const cleanPhone = phoneNumber.replace(/\D/g, '');
       return `tel:+${cleanPhone}`;
     }
 
-    // Get amenity icon
-    function getAmenityIcon(amenity) {
+    // Get amenity icon based on amenity name
+    function getAmenityIcon(amenityName) {
+      if (!amenityName) return 'check';
+      
+      const amenityLower = amenityName.toLowerCase();
+      
+      // Check for exact matches first
       for (const [key, icon] of Object.entries(amenityIcons)) {
-        if (amenity.toLowerCase().includes(key.toLowerCase())) {
+        if (amenityLower === key.toLowerCase()) {
           return icon;
         }
       }
+      
+      // Check for partial matches
+      for (const [key, icon] of Object.entries(amenityIcons)) {
+        if (amenityLower.includes(key.toLowerCase()) || key.toLowerCase().includes(amenityLower)) {
+          return icon;
+        }
+      }
+      
+      // Default icon
       return 'check';
+    }
+
+    // Safely extract location display
+    function getLocationDisplay(listing) {
+      if (listing.location_display) {
+        return listing.location_display;
+      }
+      
+      if (listing.location) {
+        // Convert underscore to space and capitalize words
+        return listing.location
+          .replace(/_/g, ' ')
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+      }
+      
+      return 'Location not specified';
     }
 
     // Render listing details
@@ -809,50 +865,66 @@
 
       try {
         const listing = await fetchListingDetails(listingId);
+        console.log('Rendering listing:', listing);
 
         // Generate contact links
-        const contactPhone = listing.contact_phone || listing.agent_detail?.phone_number || '2348000000000';
+        const contactPhone = listing.contact_phone || 
+                            (listing.agent_detail && listing.agent_detail.phone_number) || 
+                            '2348000000000';
         const whatsappLink = generateWhatsAppLink(contactPhone, listing.lodge_name);
         const callLink = generateCallLink(contactPhone);
 
         // Get primary image
-        const primaryImage = listing.cover_image_url ||
-          (listing.images && listing.images[0]?.image_url) ||
-          'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&h=800&fit=crop';
-
-        // Process amenities
-        let amenities = [];
-        if (listing.amenities && listing.amenities.length > 0) {
-          amenities = listing.amenities;
-        } else if (listing.description) {
-          const commonAmenities = Object.keys(amenityIcons);
-          amenities = commonAmenities.filter(amenity =>
-            listing.description.toLowerCase().includes(amenity.toLowerCase())
-          );
+        let primaryImage = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&h=800&fit=crop';
+        if (listing.cover_image_url) {
+          primaryImage = listing.cover_image_url;
+        } else if (listing.images && listing.images.length > 0) {
+          // Find primary image or use first one
+          const primary = listing.images.find(img => img.is_primary) || listing.images[0];
+          primaryImage = primary.image_url || primary.image;
         }
+
+        // Process amenities - FIXED: amenities are objects with name property
+        let amenities = [];
+        if (listing.amenities && Array.isArray(listing.amenities)) {
+          amenities = listing.amenities.map(amenity => {
+            // Handle both string and object formats
+            if (typeof amenity === 'string') {
+              return { name: amenity };
+            } else if (amenity && amenity.name) {
+              return amenity;
+            }
+            return null;
+          }).filter(Boolean);
+        }
+
+        console.log('Processed amenities:', amenities);
+
+        // Get location display
+        const locationDisplay = getLocationDisplay(listing);
 
         // Render premium template
         container.innerHTML = `
           <!-- Property Header -->
           <div class="property-header">
             <div class="property-title-section">
-              <h1 class="property-title">${listing.lodge_name}</h1>
+              <h1 class="property-title">${listing.lodge_name || 'Unnamed Property'}</h1>
               <div class="property-location">
                 <i class="fas fa-map-marker-alt"></i>
-                ${listing.location_detail?.name || listing.location}
+                ${locationDisplay}
               </div>
               <div class="property-meta">
                 <span class="meta-item">
                   <i class="fas fa-home"></i>
-                  ${listing.room_type?.replace('_', ' ') || 'Property'}
+                  ${listing.room_type ? listing.room_type.replace('_', ' ') : 'Property'}
                 </span>
                 <span class="meta-item">
                   <i class="fas fa-calendar-alt"></i>
-                  Posted: ${new Date(listing.created_at).toLocaleDateString('en-NG', {
+                  Posted: ${listing.created_at ? new Date(listing.created_at).toLocaleDateString('en-NG', {
           year: 'numeric',
           month: 'short',
           day: 'numeric'
-        })}
+        }) : 'Date not available'}
                 </span>
                 <span class="property-status ${listing.is_available ? 'status-available' : 'status-unavailable'}">
                   <i class="fas ${listing.is_available ? 'fa-check-circle' : 'fa-times-circle'}"></i>
@@ -863,15 +935,17 @@
 
             <!-- Gallery -->
             <div class="gallery-section">
-              <img src="${primaryImage}" alt="${listing.lodge_name}" class="main-image" id="mainImage">
+              <img src="${primaryImage}" alt="${listing.lodge_name || 'Property'}" class="main-image" id="mainImage">
               ${listing.images && listing.images.length > 1 ? `
                 <div class="thumbnail-grid">
-                  ${listing.images.slice(0, 6).map((img, index) => `
-                    <img src="${img.image_url}" 
+                  ${listing.images.slice(0, 6).map((img, index) => {
+                    const imgUrl = img.image_url || img.image;
+                    return `
+                    <img src="${imgUrl}" 
                          alt="Property image ${index + 1}" 
                          class="thumbnail ${index === 0 ? 'active' : ''}"
-                         onclick="changeMainImage('${img.image_url}', this)">
-                  `).join('')}
+                         onclick="changeMainImage('${imgUrl}', this)">
+                  `}).join('')}
                 </div>
               ` : ''}
             </div>
@@ -894,7 +968,7 @@
                   <div class="info-card">
                     <div class="info-icon"><i class="fas fa-tag"></i></div>
                     <span class="info-label">Price</span>
-                    <span class="info-value price">₦${formatPrice(listing.price)}</span>
+                    <span class="info-value price">₦${listing.price ? formatPrice(listing.price) : 'N/A'}</span>
                     <small class="info-label">per annum</small>
                   </div>
                   
@@ -915,7 +989,7 @@
                   <div class="info-card">
                     <div class="info-icon"><i class="fas fa-building"></i></div>
                     <span class="info-label">Property Type</span>
-                    <span class="info-value">${listing.room_type?.replace('_', ' ') || 'Lodge'}</span>
+                    <span class="info-value">${listing.room_type ? listing.room_type.replace('_', ' ') : 'Lodge'}</span>
                   </div>
                 </div>
 
@@ -937,11 +1011,11 @@
                     <div class="detail-item">
                       <span class="detail-label">Last Updated:</span>
                       <span class="detail-value">
-                        ${new Date(listing.updated_at).toLocaleDateString('en-NG', {
+                        ${listing.updated_at ? new Date(listing.updated_at).toLocaleDateString('en-NG', {
           year: 'numeric',
           month: 'short',
           day: 'numeric'
-        })}
+        }) : 'Date not available'}
                       </span>
                     </div>
                   </div>
@@ -953,14 +1027,17 @@
               <div class="details-card">
                 <h2 class="section-title">Amenities & Features</h2>
                 <div class="amenities-grid">
-                  ${amenities.map(amenity => `
+                  ${amenities.map(amenity => {
+                    const amenityName = amenity.name || amenity;
+                    const iconName = getAmenityIcon(amenityName);
+                    return `
                     <div class="amenity-item">
                       <div class="amenity-icon">
-                        <i class="fas fa-${getAmenityIcon(amenity)}"></i>
+                        <i class="fas fa-${iconName}"></i>
                       </div>
-                      <span>${amenity}</span>
+                      <span>${amenityName}</span>
                     </div>
-                  `).join('')}
+                  `}).join('')}
                 </div>
               </div>
               ` : ''}
@@ -970,7 +1047,7 @@
               <div class="details-card">
                 <h2 class="section-title">House Rules</h2>
                 <ul class="rules-list">
-                  ${listing.rules.split('.').filter(rule => rule.trim()).map(rule => `
+                  ${listing.rules.split('\n').filter(rule => rule.trim()).map(rule => `
                     <li><i class="fas fa-check-circle"></i> ${rule.trim()}</li>
                   `).join('')}
                 </ul>
@@ -996,8 +1073,8 @@
                 <div class="map-placeholder">
                   <i class="fas fa-map-marked-alt"></i>
                   <div>
-                    <p><strong>${listing.location_detail?.name || listing.location}</strong></p>
-                    <p>${listing.location_detail?.description || 'Location details available upon booking'}</p>
+                    <p><strong>${locationDisplay}</strong></p>
+                    <p>${listing.description ? listing.description.substring(0, 100) + '...' : 'Location details available upon booking'}</p>
                   </div>
                 </div>
               </div>
@@ -1007,31 +1084,31 @@
             <div class="sidebar">
               <!-- Agent Card -->
               <div class="agent-card">
-                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(listing.agent_detail?.full_name || 'Agent')}&background=0a7cff&color=fff&size=100" 
-                     alt="${listing.agent_detail?.full_name || 'Agent'}" 
+                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(listing.agent_detail?.username || listing.agent_detail?.full_name || 'Agent')}&background=0a7cff&color=fff&size=100" 
+                     alt="${listing.agent_detail?.username || listing.agent_detail?.full_name || 'Agent'}" 
                      class="agent-avatar">
-                <h3 class="agent-name">${listing.agent_detail?.full_name || 'Property Agent'}</h3>
+                <h3 class="agent-name">${listing.agent_detail?.full_name || listing.agent_detail?.username || 'Property Agent'}</h3>
                 <p class="agent-title">${listing.agent_detail?.is_agent ? 'Certified Agent' : 'Property Manager'}</p>
                 
                 <div class="agent-contact">
-                  ${listing.agent_detail?.email ? `
+                  ${listing.contact_email || listing.agent_detail?.email ? `
                     <div class="contact-item">
                       <i class="fas fa-envelope"></i>
-                      <span>${listing.agent_detail.email}</span>
+                      <span>${listing.contact_email || listing.agent_detail?.email || 'Email not provided'}</span>
                     </div>
                   ` : ''}
                   
-                  ${listing.agent_detail?.phone_number ? `
+                  ${listing.contact_phone || listing.agent_detail?.phone_number ? `
                     <div class="contact-item">
                       <i class="fas fa-phone"></i>
-                      <span>${listing.agent_detail.phone_number}</span>
+                      <span>${listing.contact_phone || listing.agent_detail?.phone_number || 'Phone not provided'}</span>
                     </div>
                   ` : ''}
                   
-                  ${listing.agent_detail?.agency_name ? `
+                  ${listing.agency || listing.agent_detail?.agency_name ? `
                     <div class="contact-item">
                       <i class="fas fa-building"></i>
-                      <span>${listing.agent_detail.agency_name}</span>
+                      <span>${listing.agency || listing.agent_detail?.agency_name || 'Independent'}</span>
                     </div>
                   ` : ''}
                 </div>

@@ -464,43 +464,43 @@
         <label>Amenities <span class="optional">(Optional)</span></label>
         <div class="amenities-grid">
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_wifi" name="amenities" value="WIFI">
+            <input type="checkbox" id="amenity_wifi" name="amenities" value="WiFi">
             <label for="amenity_wifi">WiFi</label>
           </div>
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_parking" name="amenities" value="PARKING">
+            <input type="checkbox" id="amenity_parking" name="amenities" value="Parking">
             <label for="amenity_parking">Parking</label>
           </div>
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_pool" name="amenities" value="POOL">
+            <input type="checkbox" id="amenity_pool" name="amenities" value="Swimming Pool">
             <label for="amenity_pool">Swimming Pool</label>
           </div>
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_gym" name="amenities" value="GYM">
+            <input type="checkbox" id="amenity_gym" name="amenities" value="Gym">
             <label for="amenity_gym">Gym</label>
           </div>
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_ac" name="amenities" value="AC">
+            <input type="checkbox" id="amenity_ac" name="amenities" value="Air Conditioning">
             <label for="amenity_ac">Air Conditioning</label>
           </div>
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_security" name="amenities" value="SECURITY">
+            <input type="checkbox" id="amenity_security" name="amenities" value="24/7 Security">
             <label for="amenity_security">24/7 Security</label>
           </div>
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_power" name="amenities" value="POWER">
+            <input type="checkbox" id="amenity_power" name="amenities" value="Power Backup">
             <label for="amenity_power">Power Backup</label>
           </div>
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_balcony" name="amenities" value="BALCONY">
+            <input type="checkbox" id="amenity_balcony" name="amenities" value="Balcony">
             <label for="amenity_balcony">Balcony</label>
           </div>
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_furnished" name="amenities" value="FURNISHED">
+            <input type="checkbox" id="amenity_furnished" name="amenities" value="Furnished">
             <label for="amenity_furnished">Furnished</label>
           </div>
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_kitchen" name="amenities" value="KITCHEN">
+            <input type="checkbox" id="amenity_kitchen" name="amenities" value="Kitchen">
             <label for="amenity_kitchen">Kitchen</label>
           </div>
           <div class="amenity-option">
@@ -508,7 +508,7 @@
             <label for="amenity_tv">TV</label>
           </div>
           <div class="amenity-option">
-            <input type="checkbox" id="amenity_washer" name="amenities" value="WASHER">
+            <input type="checkbox" id="amenity_washer" name="amenities" value="Washing Machine">
             <label for="amenity_washer">Washing Machine</label>
           </div>
         </div>
@@ -585,7 +585,6 @@
     const API_BASE_URL = CONFIG.API_BASE_URL;
     const LISTINGS_URL = `${API_BASE_URL}/api/listings/`;
     const TOKEN_REFRESH_URL = `${API_BASE_URL}/api/auth/token/refresh/`;
-    const LOCATIONS_URL = `${API_BASE_URL}/api/locations/`; // Add locations endpoint
 
     // Token management functions
     function isTokenExpired() {
@@ -661,13 +660,14 @@
       const locationSelect = document.getElementById('location');
       const infoText = locationSelect.nextElementSibling;
 
-      // Define choices matching Django model
+      // Updated to match the actual LOCATION_CHOICES from your Django model
       const locations = [
-        { value: 'IFITE_ANAMBRA', label: 'Ifite, Anambra state' },
-        { value: 'LAGOS', label: 'Lagos' },
-        { value: 'ABUJA', label: 'Abuja' },
-        { value: 'ENUGU', label: 'Enugu' },
-        { value: 'PH', label: 'Port Harcourt' },
+        { value: 'AROMA', label: 'Aroma' },
+        { value: 'AMANSEA', label: 'Amansea' },
+        { value: 'IFITE_ANAMBRA', label: 'Ifite Anambra' },
+        { value: 'IFITE UP SCHOOL', label: 'Ifite Up School' },
+        { value: 'IFITE DOWN SCHOOL', label: 'Ifite Down School' },
+        { value: 'TEMP SITE', label: 'Temp Site' },
         { value: 'OTHER', label: 'Other' }
       ];
 
@@ -721,7 +721,7 @@
         return;
       }
 
-      // Load locations (Static)
+      // Load locations (Static) - Updated to match backend
       loadLocations();
     });
 
@@ -915,7 +915,7 @@
         const room_number = document.getElementById("room_number").value.trim() || null;
         const price = parseFloat(document.getElementById("price").value);
         const description = document.getElementById("description").value.trim();
-        const amenities = getSelectedAmenities();
+        const amenities = getSelectedAmenities(); // This returns array of strings
         const rules = document.getElementById("rules").value.trim() || null;
         const contact_phone = document.getElementById("contact_phone").value.trim() || null;
         const contact_email = document.getElementById("contact_email").value.trim() || null;
@@ -941,12 +941,13 @@
         if (contact_email) formData.append("contact_email", contact_email);
         if (agency) formData.append("agency", agency);
 
-        // 2. Append Arrays (Amenities)
-        // CRITICAL: Append the same key multiple times for arrays in FormData
+        // 2. Append Amenities as JSON string - KEY CHANGE: amenity_names instead of amenities
         if (amenities.length > 0) {
-          amenities.forEach(amenity => {
-            formData.append("amenities", amenity);
-          });
+          // IMPORTANT: Use "amenity_names" as per your API serializer
+          // Convert amenities array to JSON string
+          const amenitiesJson = JSON.stringify(amenities);
+          formData.append("amenity_names", amenitiesJson);
+          console.log("Sending amenities as JSON:", amenitiesJson);
         }
 
         // 3. Append Files
@@ -955,12 +956,16 @@
           formData.append("video", videoInput.files[0]);
         }
 
-        // Add images
+        // Add images - IMPORTANT: Use `uploaded_images` (plural) as per API
         uploadedImages.forEach((img, index) => {
           formData.append("uploaded_images", img.file, img.name || `image_${index}.jpg`);
         });
 
         console.log("Sending request to:", LISTINGS_URL);
+        console.log("Form data entries:");
+        for (let [key, value] of formData.entries()) {
+          console.log(`${key}:`, value);
+        }
 
         // Send POST request
         const response = await fetch(LISTINGS_URL, {
@@ -997,6 +1002,8 @@
               errorMsg += data.non_field_errors.join(', ');
             } else if (data.uploaded_images) {
               errorMsg += "Image upload error.";
+            } else if (data.amenity_names) {
+              errorMsg += `Amenities error: ${Array.isArray(data.amenity_names) ? data.amenity_names.join(', ') : data.amenity_names}`;
             } else {
               // Show field-specific errors
               const fieldErrors = [];
@@ -1033,7 +1040,8 @@
         uploadedImages = [];
         imagePreviewContainer.innerHTML = "";
 
-        // Reset room type to default
+        // Reset selects to default
+        document.getElementById('location').selectedIndex = 0;
         document.getElementById('room_type').selectedIndex = 0;
 
         // Uncheck all amenities checkboxes
