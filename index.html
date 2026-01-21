@@ -144,7 +144,7 @@
         }
 
         // Get location name
-        const locationName = listing.location_detail?.name || listing.old_location || 'Location not specified';
+        const locationName = listing.location_detail?.name || listing.old_location ||  listing.location.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ') || 'Location not specified';
 
         // Format room type for display
         const roomType = listing.room_type ? listing.room_type.replace('_', ' ') : 'Room';
