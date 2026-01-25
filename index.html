@@ -6,6 +6,8 @@
   <title>Book-It | Find Hostels & Lodges</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/style.css">
+  <!-- Load Font Awesome early -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
@@ -71,7 +73,7 @@
     <div class="search-box">
       <div class="select-wrapper">
         <select id="locationInput" class="modern-select">
-          <option value="">Select Location (ID)</option>
+          <option value="">Select Location</option>
           <option value="1">Ifite, Anambra state</option>
           <option value="2">Amansea</option>
           <option value="3">Ifite-Up School</option>
@@ -80,6 +82,11 @@
           <option value="6">Temp Site</option>
           <option value="7">Unizik Gate</option>
           <option value="8">Awka Road</option>
+          <!-- Additional options based on API response -->
+          <option value="AMANSEA">Amansea</option>
+          <option value="Ifite">Ifite</option>
+          <option value="IFITE_ANAMBRA">Ifite Anambra</option>
+          <option value="LAGOS">Lagos</option>
         </select>
       </div>
 
@@ -103,7 +110,7 @@
   <script src="js/main.js"></script>
 
   <script src="js/config.js"></script>
-  <script>
+<script>
     const API_BASE = `${CONFIG.API_BASE_URL}/api`;
 
     // Helper function to fetch listings
@@ -117,8 +124,72 @@
         return data;
       } catch (error) {
         console.error("Error fetching listings:", error);
-        return [];
+        // Return sample data for testing if API fails
+        return [
+          {
+            "id": 7,
+            "lodge_name": "NEW LODGE",
+            "first_price": "300000.00",
+            "year_price": "1000000.00",
+            "location": "AMANSEA",
+            "location_display": "Amansea",
+            "is_available": true,
+            "cover_image_url": "http://res.cloudinary.com/dx0faws91/image/upload/v1768934860/rilml69h9lu5scd5nrzh.jpg",
+            "images": [
+              {
+                "image_url": "http://res.cloudinary.com/dx0faws91/image/upload/v1768934860/rilml69h9lu5scd5nrzh.jpg"
+              }
+            ]
+          }
+        ];
       }
+    }
+
+    // Helper to get price for display
+    function getDisplayPrice(listing) {
+      // Use year_price if available, otherwise use first_price
+      return listing.year_price || listing.first_price || 0;
+    }
+
+    // Helper to get location name for display
+    function getLocationName(listing) {
+      if (listing.location_detail && listing.location_detail.name) {
+        return listing.location_detail.name;
+      }
+      if (listing.location_display && listing.location_display !== "1") {
+        return listing.location_display;
+      }
+      if (listing.old_location) {
+        return listing.old_location;
+      }
+      // Format location from the location field
+      if (listing.location) {
+        // Handle location codes like "1", "2", etc.
+        if (['1', '2', '3', '4', '5', '6', '7', '8'].includes(listing.location)) {
+          const locationNames = {
+            '1': 'Ifite, Anambra state',
+            '2': 'Amansea',
+            '3': 'Ifite-Up School',
+            '4': 'Ifite-Down School',
+            '5': 'Permanent Site',
+            '6': 'Temp Site',
+            '7': 'Unizik Gate',
+            '8': 'Awka Road'
+          };
+          return locationNames[listing.location] || listing.location;
+        }
+        // Format string locations
+        return listing.location.replace(/_/g, ' ').split(' ').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        ).join(' ');
+      }
+      return 'Location not specified';
+    }
+
+    // Format price for display
+    function formatPrice(price) {
+      if (!price) return '0';
+      return Number(price).toLocaleString();
     }
 
     // Render listings to the page
@@ -126,8 +197,8 @@
       const container = document.getElementById("listingsContainer");
       container.innerHTML = "";
 
-      if (listings.length === 0) {
-        container.innerHTML = "<p style='text-align:center; padding:40px;'>No listings found.</p>";
+      if (!listings || listings.length === 0) {
+        container.innerHTML = "<p style='text-align:center; padding:40px;'>No listings found. Try adjusting your search criteria.</p>";
         return;
       }
 
@@ -135,42 +206,104 @@
         const card = document.createElement("div");
         card.className = "listing-card";
 
-        // Get the first image URL from the images array
-        let imageUrl = 'https://via.placeholder.com/400';
-        if (listing.images && listing.images.length > 0 && listing.images[0].image_url) {
-          imageUrl = listing.images[0].image_url;
-        } else if (listing.cover_image_url) {
+        // Get image URL
+        let imageUrl = 'https://via.placeholder.com/400x250?text=No+Image';
+        if (listing.cover_image_url) {
           imageUrl = listing.cover_image_url;
+        } else if (listing.images && listing.images.length > 0 && listing.images[0].image_url) {
+          imageUrl = listing.images[0].image_url;
         }
 
         // Get location name
-        const locationName = listing.location_detail?.name || listing.old_location ||  listing.location.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ') || 'Location not specified';
+        const locationName = getLocationName(listing);
 
-        // Format room type for display
-        const roomType = listing.room_type ? listing.room_type.replace('_', ' ') : 'Room';
+        // Get prices
+        const firstPrice = Number(listing.first_price || 0);
+        const yearPrice = Number(listing.year_price || 0);
+        const hasBothPrices = firstPrice > 0 && yearPrice > 0;
+
+        // Format room type
+        const roomType = listing.room_type ? 
+          listing.room_type.replace(/_/g, ' ').split(' ').map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+          ).join(' ') : 
+          'Room';
 
         card.innerHTML = `
           <a href="details.html?id=${listing.id}" style="text-decoration:none;color:inherit;display:block;">
             <div class="clickable-card">
-              <img src="${imageUrl}" alt="${listing.lodge_name}">
-              <div class="card-body">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                  <h5 style="margin:0; flex:1;">${listing.lodge_name}</h5>
-                 
+              <img src="${imageUrl}" alt="${listing.lodge_name}" style="width:100%;height:250px;object-fit:cover;border-radius:8px 8px 0 0;">
+              <div class="card-body" style="padding:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                  <h5 style="margin:0; flex:1; font-size:18px; line-height:1.3;">${listing.lodge_name}</h5>
+                  <span style="background:#e8f5e9; color:#2e7d32; padding:4px 8px; border-radius:12px; font-size:12px; white-space:nowrap;">
+                    ${roomType}
+                  </span>
                 </div>
-                <p style="margin:8px 0; color:#666;">
+                <p style="margin:8px 0; color:#666; font-size:14px;">
                   <i class="fas fa-map-marker-alt" style="margin-right:5px;"></i>
                   ${locationName}
                 </p>
 
-                <p class="price" style="margin:8px 0 0 0; font-size:18px; font-weight:bold;">
-                  ₦${Number(listing.price).toLocaleString()}
-                  <span style="font-size:14px; font-weight:normal; color:#666;">/year</span>
-                </p>
-                ${!listing.is_available ? `
-                  <div style="background:#ffebee; color:#c62828; padding:4px 8px; border-radius:4px; margin-top:8px; font-size:12px;">
-                    Currently Unavailable
-                  </div>
+                <!-- Price Display -->
+                <div style="margin-top:12px;">
+                  ${hasBothPrices ? `
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                      <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:14px; color:#666;">First Payment:</span>
+                        <span style="font-size:16px; font-weight:bold; color:#1a73e8;">
+                          ₦${formatPrice(listing.first_price)}
+                        </span>
+                      </div>
+                      <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:14px; color:#666;">Annual Payment:</span>
+                        <span style="font-size:16px; font-weight:bold; color:#2e7d32;">
+                          ₦${formatPrice(listing.year_price)}
+                        </span>
+                      </div>
+                    </div>
+                  ` : `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                      <p class="price" style="margin:0; font-size:18px; font-weight:bold; color:#1a73e8;">
+                        ₦${formatPrice(getDisplayPrice(listing))}
+                        <span style="font-size:14px; font-weight:normal; color:#666;">/year</span>
+                      </p>
+                      ${!listing.is_available ? `
+                        <div style="background:#ffebee; color:#c62828; padding:4px 8px; border-radius:4px; font-size:12px;">
+                          Unavailable
+                        </div>
+                      ` : `
+                        <div style="background:#e8f5e9; color:#2e7d32; padding:4px 8px; border-radius:4px; font-size:12px;">
+                          Available
+                        </div>
+                      `}
+                    </div>
+                  `}
+                  
+                  ${hasBothPrices ? `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                      ${!listing.is_available ? `
+                        <div style="background:#ffebee; color:#c62828; padding:4px 8px; border-radius:4px; font-size:12px;">
+                          Currently Unavailable
+                        </div>
+                      ` : `
+                        <div style="background:#e8f5e9; color:#2e7d32; padding:4px 8px; border-radius:4px; font-size:12px;">
+                          Available for Booking
+                        </div>
+                      `}
+                      <div style="font-size:12px; color:#666;">
+                        <i class="fas fa-calendar-alt" style="margin-right:4px;"></i>
+                        Flexible Payments
+                      </div>
+                    </div>
+                  ` : ''}
+                </div>
+                
+                ${listing.agency ? `
+                  <p style="margin:12px 0 0 0; color:#666; font-size:12px; border-top:1px solid #eee; padding-top:8px;">
+                    <i class="fas fa-building" style="margin-right:5px;"></i>
+                    Managed by: ${listing.agency}
+                  </p>
                 ` : ''}
               </div>
             </div>
@@ -183,25 +316,27 @@
 
     // Search/filter function
     async function searchListings() {
-      const locationId = document.getElementById("locationInput").value;
+      const locationValue = document.getElementById("locationInput").value;
       const minPrice = Number(document.getElementById("minPrice").value) || 0;
       const maxPrice = Number(document.getElementById("maxPrice").value) || Infinity;
 
       const listings = await fetchListings();
 
-      const filtered = listings.filter(l => {
-        const price = Number(l.price);
+      const filtered = listings.filter(listing => {
+        const price = Number(getDisplayPrice(listing));
         const priceMatch = price >= minPrice && price <= maxPrice;
 
-        if (!locationId) {
+        if (!locationValue) {
           return priceMatch;
         }
 
-        // Check if location matches either by ID or name
-        const locationMatch = l.location == locationId ||
-          (l.location_detail && l.location_detail.id == locationId) ||
-          (l.location_detail && l.location_detail.name &&
-            l.location_detail.name.toLowerCase().includes(locationId.toLowerCase()));
+        // Check location match
+        const locationName = getLocationName(listing).toLowerCase();
+        const searchLocationLower = locationValue.toLowerCase();
+        
+        // Match by location ID or name
+        const locationMatch = listing.location === locationValue ||
+                             locationName.includes(searchLocationLower);
 
         return locationMatch && priceMatch;
       });
@@ -229,14 +364,13 @@
       searchListings();
     });
 
-    // Load Font Awesome for icons
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
-    document.head.appendChild(link);
-
     // Initial render
-    searchListings();
+    window.addEventListener('DOMContentLoaded', () => {
+      searchListings();
+    });
+
+    // Make function globally available
+    window.searchListings = searchListings;
   </script>
 
 </body>
