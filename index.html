@@ -272,12 +272,82 @@ document.addEventListener('DOMContentLoaded', function() {
   let lastScrollTop = 0;
   let isMinimized = false;
   
-  // Open modal on button click
+  // Function to check if user is authenticated
+  function isAuthenticated() {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+    return token && userData;
+  }
+  
+  // Function to get user data
+  function getUserData() {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        return JSON.parse(userData);
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+        return null;
+      }
+    }
+    return null;
+  }
+  
+  // Function to check if user is an agent
+  function isUserAgent() {
+    const user = getUserData();
+    return user && user.is_agent === true;
+  }
+  
+  // Function to handle agent button visibility
+  function handleAgentButtonVisibility() {
+    if (!floatingBtn) return;
+    
+    const isAuthenticatedUser = isAuthenticated();
+    const isAgent = isUserAgent();
+    
+    // Show button if user is NOT authenticated
+    // OR if user is authenticated but NOT an agent
+    if (!isAuthenticatedUser || (isAuthenticatedUser && !isAgent)) {
+      floatingBtn.style.display = 'flex';
+    } else {
+      // Hide button only if user is authenticated AND is an agent
+      floatingBtn.style.display = 'none';
+    }
+  }
+  
+  // Initialize button visibility
+  handleAgentButtonVisibility();
+  
+  // Open modal on button click with authentication check
   floatingBtn.addEventListener('click', function() {
+    if (!isAuthenticated()) {
+      // User is NOT authenticated - redirect to login page
+      window.location.href = 'login.html';
+      return;
+    }
+    
+    // User is authenticated, check if they're already an agent
+    const isAgent = isUserAgent();
+    
+    if (isAgent) {
+      // User is already an agent, button should be hidden (already handled in handleAgentButtonVisibility)
+      return;
+    }
+    
+    // User is authenticated and not an agent, show modal
     agentModal.classList.add('active');
+    
     // Reset form when opening
     agentForm.style.display = 'flex';
     agentForm.reset();
+    
+    // Pre-fill email if user is logged in
+    const user = getUserData();
+    if (user && user.email) {
+      agentEmail.value = user.email;
+      replyToEmail.value = user.email;
+    }
   });
   
   // Close modal
@@ -415,6 +485,13 @@ document.addEventListener('DOMContentLoaded', function() {
       agentModal.classList.remove('active');
     }
   });
+  
+  // Also update button visibility when user logs in/out elsewhere
+  window.addEventListener('storage', function(e) {
+    if (e.key === 'token' || e.key === 'user') {
+      handleAgentButtonVisibility();
+    }
+  });
 });
 </script>
 
@@ -506,6 +583,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   <!-- LISTINGS -->
   <section class="listings-container" id="listingsContainer">
+    <!-- Listings will be injected here -->
+  </section>
+  <section id="listingsEmpty">
     <!-- Listings will be injected here -->
   </section>
 
@@ -603,10 +683,50 @@ document.addEventListener('DOMContentLoaded', function() {
     // Render listings to the page
     function renderListings(listings) {
       const container = document.getElementById("listingsContainer");
+      const emptyContainer = document.getElementById("listingsEmpty");
       container.innerHTML = "";
 
       if (!listings || listings.length === 0) {
-        container.innerHTML = "<p style='text-align:center; padding:40px;'>No listings found. Try adjusting your search criteria.</p>";
+        emptyContainer.innerHTML = `
+          <div style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+            text-align: center;
+          ">
+            <div>
+              <i class="fas fa-inbox" style="
+                font-size: 64px;
+                color: #e0e0e0;
+                margin-bottom: 20px;
+                display: block;
+              "></i>
+              <h3 style="
+                color: #555;
+                margin-bottom: 12px;
+                font-weight: 500;
+              ">
+                No Results Found
+              </h3>
+              <p style="
+                color: #888;
+                font-size: 16px;
+                line-height: 1.5;
+                max-width: 400px;
+                margin: 0 auto 20px;
+              ">
+                We couldn't find any listings at the moment.
+              </p>
+              <p style="
+                color: #aaa;
+                font-size: 14px;
+              ">
+                Try another time
+              </p>
+            </div>
+          </div>
+        `;
         return;
       }
 
@@ -753,9 +873,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // MOBILE MENU & SEARCH
-    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
-    const desktopNav = document.getElementById("navMenu");
-    mobileMenuBtn.addEventListener("click", () => desktopNav.classList.toggle("active"));
+    // const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    // const desktopNav = document.getElementById("navMenu");
+    // mobileMenuBtn.addEventListener("click", () => desktopNav.classList.toggle("active"));
 
     const searchModal = document.getElementById("searchModal");
     const mobileSearchPill = document.getElementById("mobileSearchPill");

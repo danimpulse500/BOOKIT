@@ -5,6 +5,7 @@
   <title>Book-It | Contact Support</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/style.css">
   <style>
     body {
@@ -24,57 +25,142 @@
 
     .contact-container h2 {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
       font-weight: 600;
+      color: #333;
     }
 
     label {
       display: block;
-      margin-top: 15px;
+      margin-top: 20px;
       font-weight: 500;
+      color: #555;
     }
 
     input, textarea {
       width: 100%;
       padding: 12px;
-      margin-top: 6px;
+      margin-top: 8px;
       border-radius: 8px;
-      border: 1px solid #ccc;
+      border: 1px solid #ddd;
       font-size: 14px;
       outline: none;
       box-sizing: border-box;
+      font-family: inherit;
+    }
+
+    input:focus, textarea:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
     }
 
     textarea {
       resize: vertical;
-      min-height: 100px;
+      min-height: 120px;
     }
 
     .submit-btn {
       margin-top: 25px;
       width: 100%;
       padding: 12px;
-  background: linear-gradient(135deg, #130569, #2b1bbf);
+      background: linear-gradient(135deg, #130569, #2b1bbf);
       color: #fff;
       border: none;
       border-radius: 8px;
       font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: opacity 0.2s;
     }
 
     .submit-btn:hover {
-  background: linear-gradient(135deg, #130569, #2b1bbf);
+      opacity: 0.9;
     }
 
+    /* Minimal contact info */
     .contact-info {
-      margin-top: 30px;
-      font-size: 14px;
-      color: #555;
+      margin-top: 40px;
+      padding-top: 30px;
+      border-top: 1px solid #eee;
     }
 
-    .contact-info p {
-      margin: 5px 0;
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    .contact-item:hover {
+      background: #f8f9fa;
+    }
+
+    .contact-icon {
+      width: 40px;
+      height: 40px;
+      background: #f0f2ff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .contact-icon i {
+      font-size: 18px;
+      color: #667eea;
+    }
+
+    .contact-details {
+      flex: 1;
+    }
+
+    .contact-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .contact-value {
+      font-size: 16px;
+      font-weight: 500;
+      color: #333;
+      text-decoration: none;
+    }
+
+    .contact-value:hover {
+      color: #667eea;
+    }
+
+    /* WhatsApp specific */
+    .whatsapp .contact-icon {
+      background: #f0fdf4;
+    }
+
+    .whatsapp .contact-icon i {
+      color: #25D366;
+    }
+
+    .whatsapp .contact-label {
+      color: #25D366;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .contact-container {
+        margin: 30px 15px;
+        padding: 20px;
+      }
+      
+      .contact-container h2 {
+        font-size: 22px;
+      }
     }
   </style>
 </head>
@@ -104,49 +190,105 @@
   <!-- Contact Form -->
   <div class="contact-container">
     <h2>Contact Support</h2>
-    <form id="contactForm">
+    
+    <form id="contactForm" action="https://formspree.io/f/mqeqlond" method="POST">
       <label for="name">Your Name</label>
-      <input type="text" id="name" required>
+      <input type="text" id="name" name="name" required>
 
       <label for="email">Your Email</label>
-      <input type="email" id="email" required>
+      <input type="email" id="email" name="email" required>
 
       <label for="message">Message</label>
-      <textarea id="message" required></textarea>
+      <textarea id="message" name="message" required></textarea>
 
       <button class="submit-btn" type="submit">Send Message</button>
     </form>
 
+    <!-- Minimal Contact Info -->
     <div class="contact-info">
-      <p>📧 Email: support@book-it.com</p>
-      <p>📞 Phone: 08012345678</p>
+      <h3 style="margin-bottom: 20px; color: #555; font-size: 18px;">Direct Contact</h3>
+      
+      <div class="contact-item">
+        <div class="contact-icon">
+          <i class="fas fa-envelope"></i>
+        </div>
+        <div class="contact-details">
+          <p class="contact-label">Email</p>
+          <a href="mailto:bookit.office@gmail.com" class="contact-value">bookit.office@gmail.com</a>
+        </div>
+      </div>
+
+      <div class="contact-item whatsapp">
+        <div class="contact-icon">
+          <i class="fab fa-whatsapp"></i>
+        </div>
+        <div class="contact-details">
+          <p class="contact-label">WhatsApp</p>
+          <a href="https://wa.me/2349134850138" target="_blank" class="contact-value">+234 913 485 0138</a>
+        </div>
+      </div>
     </div>
   </div>
 
-    <script src="js/main.js"></script>
+  <script src="js/main.js"></script>
 
   <script>
     const form = document.getElementById("contactForm");
 
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const name = document.getElementById("name").value;
-      const email = document.getElementById("email").value;
-      const message = document.getElementById("message").value;
+      const submitBtn = form.querySelector('.submit-btn');
+      const originalText = submitBtn.textContent;
+      
+      // Show loading state
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending...';
+      submitBtn.style.opacity = '0.7';
 
-      if(!name || !email || !message){
-        alert("Please fill in all fields.");
-        return;
+      try {
+        const formData = new FormData(form);
+        
+        // Add timestamp
+        formData.append('timestamp', new Date().toISOString());
+        formData.append('source', 'Book-It Contact Page');
+        
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          alert('Message sent successfully! We\'ll get back to you soon.');
+          form.reset();
+        } else {
+          throw new Error('Form submission failed');
+        }
+        
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Sorry, there was an error sending your message. Please try again or contact us directly.');
+        
+        // Fallback: save to localStorage
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+        const message = document.getElementById("message").value;
+        
+        const messages = JSON.parse(localStorage.getItem("supportMessages")) || [];
+        messages.push({ name, email, message, date: new Date().toISOString() });
+        localStorage.setItem("supportMessages", JSON.stringify(messages));
+        
+        alert('Message saved locally. We\'ll try to send it again later.');
+        
+      } finally {
+        // Reset button
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        submitBtn.style.opacity = '1';
       }
-
-      // Save to localStorage for now (you can replace this with an API later)
-      const messages = JSON.parse(localStorage.getItem("supportMessages")) || [];
-      messages.push({ name, email, message, date: new Date() });
-      localStorage.setItem("supportMessages", JSON.stringify(messages));
-
-      alert("Your message has been sent!");
-      form.reset();
     });
   </script>
 
