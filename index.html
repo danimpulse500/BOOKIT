@@ -26,473 +26,490 @@
       <button class="close-agent-modal" id="closeAgentModal">&times;</button>
     </div>
     <div class="agent-modal-body">
-      <form id="agentForm" action="https://formspree.io/f/xbdoojgo" method="POST">
-        <input type="email" name="email" id="agentEmail" placeholder="Your Email Address" required>
-        <input type="text" name="agency_name" id="agencyName" placeholder="Your Agency Name" required>
-        <textarea name="message" id="agentMessage" placeholder="Tell us about your experience (optional)" rows="3"></textarea>
-        <input type="hidden" name="_subject" value="New Agent Request - Book-It">
-        <input type="hidden" name="_replyto" id="replyToEmail">
-        <button type="submit" id="submitAgentRequest">Submit Request</button>
-        <p class="modal-note">
-          <i class="fas fa-info-circle"></i> We'll email you within 24 hours. Please check your email (and spam folder) regularly!
-        </p>
-      </form>
+      <div id="agentFormContainer">
+        <form id="agentForm" action="https://formspree.io/f/xbdoojgo" method="POST">
+          <input type="email" name="email" id="agentEmail" placeholder="Your Email Address" required>
+          <input type="text" name="agency_name" id="agencyName" placeholder="Your Agency Name" required>
+          <textarea name="message" id="agentMessage" placeholder="Tell us about your experience (optional)"
+            rows="3"></textarea>
+          <input type="hidden" name="_subject" value="New Agent Request - Book-It">
+          <input type="hidden" name="_replyto" id="replyToEmail">
+          <button type="submit" id="submitAgentRequest">Submit Request</button>
+          <p class="modal-note">
+            <i class="fas fa-info-circle"></i> We'll email you within 24 hours. Please check your email (and spam
+            folder) regularly!
+          </p>
+        </form>
+      </div>
+      <div id="agentSuccessMessage" class="form-success" style="display: none;">
+        <i class="fas fa-check-circle"></i>
+        <h4>Request Submitted!</h4>
+        <p>Thank you for your interest in becoming a Book-It Agent.</p>
+        <p><strong>Important:</strong> Please check your email (and spam folder) regularly within the next 24 hours for
+          our response.</p>
+        <p>We look forward to working with you!</p>
+        <button id="closeSuccessMsg"
+          style="margin-top:15px; padding:8px 20px; background:#667eea; color:white; border:none; border-radius:6px; cursor:pointer;">
+          Close
+        </button>
+      </div>
     </div>
   </div>
 </div>
 
 <style>
-/* Floating Button Styles */
-.floating-agent-btn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 50px;
-  padding: 12px 20px;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  transition: all 0.3s ease;
-  z-index: 1000;
-  overflow: hidden;
-  width: auto;
-  min-width: 50px;
-}
-
-.floating-btn-content {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.floating-btn-text {
-  font-weight: 600;
-  font-size: 14px;
-  transition: opacity 0.3s ease, max-width 0.3s ease;
-  max-width: 200px;
-  opacity: 1;
-}
-
-.floating-agent-btn.minimized .floating-btn-text {
-  opacity: 0;
-  max-width: 0;
-}
-
-.floating-agent-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-}
-
-.floating-agent-btn:active {
-  transform: translateY(0);
-}
-
-.floating-agent-btn i {
-  font-size: 18px;
-  min-width: 18px;
-}
-
-/* Modal Styles */
-.agent-modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  z-index: 1001;
-  align-items: center;
-  justify-content: center;
-}
-
-.agent-modal.active {
-  display: flex;
-}
-
-.agent-modal-content {
-  background: white;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 400px;
-  padding: 0;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-  animation: modalSlideIn 0.3s ease;
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
+  /* Floating Button Styles */
+  .floating-agent-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    overflow: hidden;
+    width: auto;
+    min-width: 50px;
   }
-  to {
+
+  .floating-btn-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .floating-btn-text {
+    font-weight: 600;
+    font-size: 14px;
+    transition: opacity 0.3s ease, max-width 0.3s ease;
+    max-width: 200px;
     opacity: 1;
+  }
+
+  .floating-agent-btn.minimized .floating-btn-text {
+    opacity: 0;
+    max-width: 0;
+  }
+
+  .floating-agent-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  }
+
+  .floating-agent-btn:active {
     transform: translateY(0);
   }
-}
 
-.agent-modal-header {
-  padding: 20px 20px 10px;
-  border-bottom: 1px solid #eee;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+  .floating-agent-btn i {
+    font-size: 18px;
+    min-width: 18px;
+  }
 
-.agent-modal-header h3 {
-  margin: 0;
-  color: #333;
-}
+  /* Modal Styles */
+  .agent-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+    align-items: center;
+    justify-content: center;
+  }
 
-.close-agent-modal {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #666;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-}
+  .agent-modal.active {
+    display: flex;
+  }
 
-.close-agent-modal:hover {
-  background: #f5f5f5;
-  color: #333;
-}
+  .agent-modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    padding: 0;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    animation: modalSlideIn 0.3s ease;
+  }
 
-.agent-modal-body {
-  padding: 20px;
-}
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
 
-.agent-modal-body form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
-.agent-modal-body input,
-.agent-modal-body textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-  box-sizing: border-box;
-  font-family: inherit;
-}
+  .agent-modal-header {
+    padding: 20px 20px 10px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
-.agent-modal-body textarea {
-  resize: vertical;
-  min-height: 80px;
-}
+  .agent-modal-header h3 {
+    margin: 0;
+    color: #333;
+  }
 
-.agent-modal-body input:focus,
-.agent-modal-body textarea:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
-}
+  .close-agent-modal {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
 
-#submitAgentRequest {
-  width: 100%;
-  padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.3s ease;
-}
+  .close-agent-modal:hover {
+    background: #f5f5f5;
+    color: #333;
+  }
 
-#submitAgentRequest:hover {
-  opacity: 0.9;
-}
+  .agent-modal-body {
+    padding: 20px;
+  }
 
-.modal-note {
-  margin-top: 10px;
-  font-size: 12px;
-  color: #666;
-  text-align: center;
-  line-height: 1.4;
-  padding: 8px;
-  background: #f8f9fa;
-  border-radius: 6px;
-  border-left: 3px solid #667eea;
-}
+  .agent-modal-body form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
 
-.modal-note i {
-  color: #667eea;
-  margin-right: 5px;
-}
+  .agent-modal-body input,
+  .agent-modal-body textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
 
-/* Form success message */
-.form-success {
-  display: none;
-  text-align: center;
-  padding: 20px;
-}
+  .agent-modal-body textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
 
-.form-success i {
-  font-size: 48px;
-  color: #4CAF50;
-  margin-bottom: 15px;
-}
+  .agent-modal-body input:focus,
+  .agent-modal-body textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+  }
 
-.form-success h4 {
-  color: #333;
-  margin-bottom: 10px;
-}
+  #submitAgentRequest {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+  }
 
-.form-success p {
-  color: #666;
-  font-size: 14px;
-  line-height: 1.5;
-}
+  #submitAgentRequest:hover {
+    opacity: 0.9;
+  }
+
+  .modal-note {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+    line-height: 1.4;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #667eea;
+  }
+
+  .modal-note i {
+    color: #667eea;
+    margin-right: 5px;
+  }
+
+  /* Form success message */
+  .form-success {
+    display: block;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .form-success i {
+    font-size: 48px;
+    color: #4CAF50;
+    margin-bottom: 15px;
+  }
+
+  .form-success h4 {
+    color: #333;
+    margin-bottom: 10px;
+  }
+
+  .form-success p {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+  }
 </style>
 
 <script>
-// Floating Agent Button Functionality
-document.addEventListener('DOMContentLoaded', function() {
-  const floatingBtn = document.getElementById('floatingAgentBtn');
-  const agentModal = document.getElementById('agentModal');
-  const closeAgentModal = document.getElementById('closeAgentModal');
-  const agentForm = document.getElementById('agentForm');
-  const agentEmail = document.getElementById('agentEmail');
-  const replyToEmail = document.getElementById('replyToEmail');
-  
-  let lastScrollTop = 0;
-  let isMinimized = false;
-  
-  // Function to check if user is authenticated
-  function isAuthenticated() {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    return token && userData;
-  }
-  
-  // Function to get user data
-  function getUserData() {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      try {
-        return JSON.parse(userData);
-      } catch (e) {
-        console.error('Error parsing user data:', e);
-        return null;
+  // Floating Agent Button Functionality
+  document.addEventListener('DOMContentLoaded', function () {
+    const floatingBtn = document.getElementById('floatingAgentBtn');
+    const agentModal = document.getElementById('agentModal');
+    const closeAgentModal = document.getElementById('closeAgentModal');
+    const agentForm = document.getElementById('agentForm');
+    const agentEmail = document.getElementById('agentEmail');
+    const replyToEmail = document.getElementById('replyToEmail');
+
+    let lastScrollTop = 0;
+    let isMinimized = false;
+
+    // Function to check if user is authenticated
+    function isAuthenticated() {
+      return localStorage.getItem('accessToken') || localStorage.getItem('loggedInUser') === 'true';
+    }
+
+    // Function to get user data
+    function getUserData() {
+      const userData = localStorage.getItem('userData');
+      if (userData) {
+        try {
+          return JSON.parse(userData);
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+          return null;
+        }
+      }
+      return null;
+    }
+
+    // Function to check if user is an agent
+    function isUserAgent() {
+      const user = getUserData();
+      const userRole = localStorage.getItem('userRole');
+      return (user && user.is_agent === true) || (userRole && userRole.toLowerCase() === 'agent');
+    }
+
+    // Function to handle agent button visibility
+    function handleAgentButtonVisibility() {
+      if (!floatingBtn) return;
+
+      const isAuthenticatedUser = isAuthenticated();
+      const isAgent = isUserAgent();
+
+      // Show button if user is NOT authenticated
+      // OR if user is authenticated but NOT an agent
+      if (!isAuthenticatedUser || (isAuthenticatedUser && !isAgent)) {
+        floatingBtn.style.display = 'flex';
+      } else {
+        // Hide button only if user is authenticated AND is an agent
+        floatingBtn.style.display = 'none';
       }
     }
-    return null;
-  }
-  
-  // Function to check if user is an agent
-  function isUserAgent() {
-    const user = getUserData();
-    return user && user.is_agent === true;
-  }
-  
-  // Function to handle agent button visibility
-  function handleAgentButtonVisibility() {
-    if (!floatingBtn) return;
-    
-    const isAuthenticatedUser = isAuthenticated();
-    const isAgent = isUserAgent();
-    
-    // Show button if user is NOT authenticated
-    // OR if user is authenticated but NOT an agent
-    if (!isAuthenticatedUser || (isAuthenticatedUser && !isAgent)) {
-      floatingBtn.style.display = 'flex';
-    } else {
-      // Hide button only if user is authenticated AND is an agent
-      floatingBtn.style.display = 'none';
-    }
-  }
-  
-  // Initialize button visibility
-  handleAgentButtonVisibility();
-  
-  // Open modal on button click with authentication check
-  floatingBtn.addEventListener('click', function() {
-    if (!isAuthenticated()) {
-      // User is NOT authenticated - redirect to login page
-      window.location.href = 'login.html';
-      return;
-    }
-    
-    // User is authenticated, check if they're already an agent
-    const isAgent = isUserAgent();
-    
-    if (isAgent) {
-      // User is already an agent, button should be hidden (already handled in handleAgentButtonVisibility)
-      return;
-    }
-    
-    // User is authenticated and not an agent, show modal
-    agentModal.classList.add('active');
-    
-    // Reset form when opening
-    agentForm.style.display = 'flex';
-    agentForm.reset();
-    
-    // Pre-fill email if user is logged in
-    const user = getUserData();
-    if (user && user.email) {
-      agentEmail.value = user.email;
-      replyToEmail.value = user.email;
-    }
-  });
-  
-  // Close modal
-  closeAgentModal.addEventListener('click', function() {
-    agentModal.classList.remove('active');
-  });
-  
-  // Close modal when clicking outside
-  agentModal.addEventListener('click', function(e) {
-    if (e.target === agentModal) {
+
+    // Initialize button visibility
+    handleAgentButtonVisibility();
+
+    // Open modal on button click with authentication check
+    floatingBtn.addEventListener('click', function () {
+      if (!isAuthenticated()) {
+        // User is NOT authenticated - redirect to login page
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // User is authenticated, check if they're already an agent
+      const isAgent = isUserAgent();
+
+      if (isAgent) {
+        // User is already an agent, button should be hidden (already handled in handleAgentButtonVisibility)
+        return;
+      }
+
+      // User is authenticated and not an agent, show modal
+      agentModal.classList.add('active');
+
+      // Reset form and show form container
+      const agentFormContainer = document.getElementById('agentFormContainer');
+      const agentSuccessMessage = document.getElementById('agentSuccessMessage');
+
+      if (agentFormContainer) agentFormContainer.style.display = 'block';
+      if (agentSuccessMessage) agentSuccessMessage.style.display = 'none';
+
+      agentForm.reset();
+
+      // Pre-fill email if user is logged in
+      const user = getUserData();
+      const userEmailStored = localStorage.getItem('userEmail');
+      const emailToFill = (user && user.email) ? user.email : userEmailStored;
+
+      if (emailToFill) {
+        agentEmail.value = emailToFill;
+        replyToEmail.value = emailToFill;
+      }
+    });
+
+    // Close modal
+    closeAgentModal.addEventListener('click', function () {
       agentModal.classList.remove('active');
-    }
-  });
-  
-  // Handle email input to sync with replyto field
-  agentEmail.addEventListener('input', function() {
-    replyToEmail.value = agentEmail.value;
-  });
-  
-  // Handle form submission
-  agentForm.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const submitBtn = document.getElementById('submitAgentRequest');
-    const originalText = submitBtn.textContent;
-    
-    // Validate email
-    if (!validateEmail(agentEmail.value)) {
-      alert('Please enter a valid email address');
-      return;
-    }
-    
-    // Disable button and show loading
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Sending...';
-    submitBtn.style.opacity = '0.7';
-    
-    try {
-      const formData = new FormData(agentForm);
-      
-      // Add current timestamp
-      formData.append('timestamp', new Date().toISOString());
-      formData.append('source', 'Book-It Website');
-      
-      const response = await fetch(agentForm.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Accept': 'application/json'
-        }
-      });
-      
-      if (response.ok) {
-        // Show success message
-        agentForm.innerHTML = `
-          <div class="form-success">
-            <i class="fas fa-check-circle"></i>
-            <h4>Request Submitted!</h4>
-            <p>Thank you for your interest in becoming a Book-It Agent.</p>
-            <p><strong>Important:</strong> Please check your email (and spam folder) regularly within the next 24 hours for our response.</p>
-            <p>We look forward to working with you!</p>
-            <button id="closeSuccessMsg" style="margin-top:15px; padding:8px 20px; background:#667eea; color:white; border:none; border-radius:6px; cursor:pointer;">
-              Close
-            </button>
-          </div>
-        `;
-        
-        // Add event listener to close button in success message
-        setTimeout(() => {
-          const closeBtn = document.getElementById('closeSuccessMsg');
-          if (closeBtn) {
-            closeBtn.addEventListener('click', function() {
+    });
+
+    // Close modal when clicking outside
+    agentModal.addEventListener('click', function (e) {
+      if (e.target === agentModal) {
+        agentModal.classList.remove('active');
+      }
+    });
+
+    // Handle email input to sync with replyto field
+    agentEmail.addEventListener('input', function () {
+      replyToEmail.value = agentEmail.value;
+    });
+
+    // Handle form submission
+    agentForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById('submitAgentRequest');
+      const originalText = submitBtn.textContent;
+
+      // Validate email
+      if (!validateEmail(agentEmail.value)) {
+        alert('Please enter a valid email address');
+        return;
+      }
+
+      // Disable button and show loading
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending...';
+      submitBtn.style.opacity = '0.7';
+
+      try {
+        const formData = new FormData(agentForm);
+
+        // Add current timestamp
+        formData.append('timestamp', new Date().toISOString());
+        formData.append('source', 'Book-It Website');
+
+        const response = await fetch(agentForm.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          // Show success message
+          const agentFormContainer = document.getElementById('agentFormContainer');
+          const agentSuccessMessage = document.getElementById('agentSuccessMessage');
+          const closeSuccessMsg = document.getElementById('closeSuccessMsg');
+
+          if (agentFormContainer) agentFormContainer.style.display = 'none';
+          if (agentSuccessMessage) agentSuccessMessage.style.display = 'block';
+
+          // Add event listener to close button in success message
+          if (closeSuccessMsg) {
+            closeSuccessMsg.addEventListener('click', function () {
               agentModal.classList.remove('active');
             });
           }
-        }, 100);
-        
-        // Auto-close modal after 5 seconds
-        setTimeout(() => {
-          agentModal.classList.remove('active');
-        }, 5000);
-        
+
+          // Auto-close modal after 5 seconds
+          setTimeout(() => {
+            if (agentModal.classList.contains('active') && agentSuccessMessage.style.display === 'block') {
+              agentModal.classList.remove('active');
+            }
+          }, 5000);
+
+        } else {
+          throw new Error('Form submission failed');
+        }
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Sorry, there was an error submitting your request. Please try again or contact us directly.');
+
+        // Reset button
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        submitBtn.style.opacity = '1';
+      }
+    });
+
+    // Scroll behavior
+    window.addEventListener('scroll', function () {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+      // Show/hide button on scroll
+      if (scrollTop > lastScrollTop) {
+        // Scrolling down - minimize
+        if (!isMinimized) {
+          floatingBtn.classList.add('minimized');
+          isMinimized = true;
+        }
       } else {
-        throw new Error('Form submission failed');
+        // Scrolling up - show full
+        if (isMinimized) {
+          floatingBtn.classList.remove('minimized');
+          isMinimized = false;
+        }
       }
-      
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Sorry, there was an error submitting your request. Please try again or contact us directly.');
-      
-      // Reset button
-      submitBtn.disabled = false;
-      submitBtn.textContent = originalText;
-      submitBtn.style.opacity = '1';
-    }
-  });
-  
-  // Scroll behavior
-  window.addEventListener('scroll', function() {
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    
-    // Show/hide button on scroll
-    if (scrollTop > lastScrollTop) {
-      // Scrolling down - minimize
-      if (!isMinimized) {
-        floatingBtn.classList.add('minimized');
-        isMinimized = true;
-      }
-    } else {
-      // Scrolling up - show full
-      if (isMinimized) {
+
+      // Always show full button at top of page
+      if (scrollTop < 100) {
         floatingBtn.classList.remove('minimized');
         isMinimized = false;
       }
+
+      lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+    });
+
+    // Email validation function
+    function validateEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
     }
-    
-    // Always show full button at top of page
-    if (scrollTop < 100) {
-      floatingBtn.classList.remove('minimized');
-      isMinimized = false;
-    }
-    
-    lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && agentModal.classList.contains('active')) {
+        agentModal.classList.remove('active');
+      }
+    });
+
+    // Also update button visibility when user logs in/out elsewhere
+    window.addEventListener('storage', function (e) {
+      if (e.key === 'accessToken' || e.key === 'userData' || e.key === 'userRole') {
+        handleAgentButtonVisibility();
+      }
+    });
   });
-  
-  // Email validation function
-  function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  }
-  
-  // Close modal with Escape key
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && agentModal.classList.contains('active')) {
-      agentModal.classList.remove('active');
-    }
-  });
-  
-  // Also update button visibility when user logs in/out elsewhere
-  window.addEventListener('storage', function(e) {
-    if (e.key === 'token' || e.key === 'user') {
-      handleAgentButtonVisibility();
-    }
-  });
-});
 </script>
 
 <body>
@@ -598,7 +615,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <script src="js/main.js"></script>
 
   <script src="js/config.js"></script>
-<script>
+  <script>
     const API_BASE = `${CONFIG.API_BASE_URL}/api`;
 
     // Helper function to fetch listings
@@ -667,7 +684,7 @@ document.addEventListener('DOMContentLoaded', function() {
           return locationNames[listing.location] || listing.location;
         }
         // Format string locations
-        return listing.location.replace(/_/g, ' ').split(' ').map(word => 
+        return listing.location.replace(/_/g, ' ').split(' ').map(word =>
           word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
         ).join(' ');
       }
@@ -751,10 +768,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const hasBothPrices = firstPrice > 0 && yearPrice > 0;
 
         // Format room type
-        const roomType = listing.room_type ? 
-          listing.room_type.replace(/_/g, ' ').split(' ').map(word => 
+        const roomType = listing.room_type ?
+          listing.room_type.replace(/_/g, ' ').split(' ').map(word =>
             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-          ).join(' ') : 
+          ).join(' ') :
           'Room';
 
         card.innerHTML = `
@@ -861,10 +878,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Check location match
         const locationName = getLocationName(listing).toLowerCase();
         const searchLocationLower = locationValue.toLowerCase();
-        
+
         // Match by location ID or name
         const locationMatch = listing.location === locationValue ||
-                             locationName.includes(searchLocationLower);
+          locationName.includes(searchLocationLower);
 
         return locationMatch && priceMatch;
       });
