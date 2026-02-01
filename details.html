@@ -314,39 +314,54 @@
       font-size: 28px;
     }
 
-    /* Amenities Grid */
+    /* Amenities Pill Layout */
     .amenities-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
       margin: 20px 0;
     }
 
     .amenity-item {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      padding: 12px 15px;
-      background: var(--light-gray);
-      border-radius: 8px;
-      transition: var(--transition);
+      padding: 8px 18px;
+      background: white;
+      border: 1px solid var(--medium-gray);
+      border-radius: 50px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
     }
 
     .amenity-item:hover {
-      background: rgba(10, 124, 255, 0.1);
-      transform: translateX(5px);
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(10, 124, 255, 0.2);
+    }
+
+    .amenity-item:hover span, 
+    .amenity-item:hover .amenity-icon i {
+      color: white;
     }
 
     .amenity-icon {
-      width: 24px;
-      height: 24px;
-      background: var(--primary-color);
-      color: white;
-      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      color: var(--primary-color);
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-right: 12px;
-      font-size: 12px;
+      margin-right: 8px;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .amenity-item span {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--secondary-color);
+      white-space: nowrap;
     }
 
     /* Rules Section */
@@ -728,31 +743,48 @@
 
     // Format price with commas
     function formatPrice(price) {
+      if (price === null || price === undefined || price === '' || isNaN(parseFloat(price))) {
+        return '0';
+      }
       return parseFloat(price).toLocaleString('en-NG', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
       });
     }
 
     // Map amenities to icons
     const amenityIcons = {
       'wifi': 'wifi',
+      'internet': 'wifi',
       'electricity': 'bolt',
+      'power': 'bolt',
+      'prepaid': 'charging-station',
       'water': 'faucet',
+      'borehole': 'faucet',
       'security': 'shield-alt',
-      'parking': 'parking',
+      'gate': 'door-closed',
+      'parking': 'car',
       'furnished': 'couch',
       'kitchen': 'utensils',
+      'cabinet': 'archive',
       'ac': 'snowflake',
       'air conditioning': 'snowflake',
+      'fan': 'fan',
       'tv': 'tv',
       'laundry': 'tshirt',
       'gym': 'dumbbell',
       'pool': 'swimming-pool',
-      'power backup': 'plug',
+      'swimming': 'swimming-pool',
+      'backup': 'plug',
+      'generator': 'charging-station',
       'balcony': 'door-open',
-      'washer': 'tshirt',
-      'washing machine': 'tshirt'
+      'wardrobe': 'closet-mirror',
+      'table': 'table',
+      'reading': 'book-reader',
+      'tiled': 'border-all',
+      'bathroom': 'bath',
+      'toilet': 'toilet',
+      'shower': 'shower'
     };
 
     // Fetch listing details from API
@@ -768,13 +800,13 @@
         });
 
         console.log(`Response status: ${response.status}`);
-        
+
         if (!response.ok) {
           const errorText = await response.text();
           console.error('Response error:', errorText);
           throw new Error(`Failed to fetch listing: ${response.status} - ${response.statusText}`);
         }
-        
+
         const data = await response.json();
         console.log('Fetched listing data:', data);
         return data;
@@ -808,23 +840,23 @@
     // Get amenity icon based on amenity name
     function getAmenityIcon(amenityName) {
       if (!amenityName) return 'check';
-      
+
       const amenityLower = amenityName.toLowerCase();
-      
+
       // Check for exact matches first
       for (const [key, icon] of Object.entries(amenityIcons)) {
         if (amenityLower === key.toLowerCase()) {
           return icon;
         }
       }
-      
+
       // Check for partial matches
       for (const [key, icon] of Object.entries(amenityIcons)) {
         if (amenityLower.includes(key.toLowerCase()) || key.toLowerCase().includes(amenityLower)) {
           return icon;
         }
       }
-      
+
       // Default icon
       return 'check';
     }
@@ -834,7 +866,7 @@
       if (listing.location_display) {
         return listing.location_display;
       }
-      
+
       if (listing.location) {
         // Convert underscore to space and capitalize words
         return listing.location
@@ -843,7 +875,7 @@
           .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
           .join(' ');
       }
-      
+
       return 'Location not specified';
     }
 
@@ -868,9 +900,9 @@
         console.log('Rendering listing:', listing);
 
         // Generate contact links
-        const contactPhone = listing.contact_phone || 
-                            (listing.agent_detail && listing.agent_detail.phone_number) || 
-                            '2348000000000';
+        const contactPhone = listing.contact_phone ||
+          (listing.agent_detail && listing.agent_detail.phone_number) ||
+          '2348000000000';
         const whatsappLink = generateWhatsAppLink(contactPhone, listing.lodge_name);
         const callLink = generateCallLink(contactPhone);
 
@@ -884,19 +916,74 @@
           primaryImage = primary.image_url || primary.image;
         }
 
-        // Process amenities - FIXED: amenities are objects with name property
+        // Process amenities - Ultra-robust pill extraction
         let amenities = [];
-        if (listing.amenities && Array.isArray(listing.amenities)) {
-          amenities = listing.amenities.map(amenity => {
-            // Handle both string and object formats
-            if (typeof amenity === 'string') {
-              return { name: amenity };
-            } else if (amenity && amenity.name) {
-              return amenity;
+        const processRawAmenities = (raw) => {
+          if (!raw) return [];
+          
+          let stringsToProcess = [];
+          
+          // 1. Gather all potential amenity strings
+          if (Array.isArray(raw)) {
+            raw.forEach(a => {
+              if (typeof a === 'string') stringsToProcess.push(a);
+              else if (a && (a.name || a.amenity_name || a.label)) {
+                stringsToProcess.push(a.name || a.amenity_name || a.label);
+              }
+            });
+          } else if (typeof raw === 'string') {
+            stringsToProcess.push(raw);
+          }
+          
+          // 2. Explode strings and clean them
+          let finalSet = new Set();
+          
+          stringsToProcess.forEach(str => {
+            if (!str) return;
+            
+            let workingStr = str.trim();
+            
+            // Handle double-stringified JSON or weird quoted JSON
+            if (workingStr.startsWith('"') && workingStr.endsWith('"')) {
+               try { 
+                 const parsed = JSON.parse(workingStr);
+                 if (typeof parsed === 'string') workingStr = parsed;
+                 else if (Array.isArray(parsed)) {
+                    parsed.forEach(item => finalSet.add(String(item).trim()));
+                    return;
+                 }
+               } catch(e) {}
             }
-            return null;
-          }).filter(Boolean);
-        }
+            
+            // Handle standard JSON arrays
+            if (workingStr.startsWith('[') && workingStr.endsWith(']')) {
+              try {
+                const parsed = JSON.parse(workingStr);
+                if (Array.isArray(parsed)) {
+                  parsed.forEach(item => finalSet.add(String(item).trim()));
+                  return;
+                }
+              } catch(e) {}
+            }
+            
+            // AGGRESSIVE SPLIT: Handle "A","B" or "A", "B" or [A, B] or A,B
+            // This is the core fix for everything being in one pill
+            const parts = workingStr
+              .replace(/[\[\]]/g, '') // remove brackets
+              .split(/","|",\s*"|",|,"|,\s*|;\s*/); // split by various quote/comma combos
+              
+            parts.forEach(p => {
+              // Strip any remaining quotes from the beginning/end
+              const clean = p.replace(/^["']|["']$/g, '').trim();
+              if (clean) finalSet.add(clean);
+            });
+          });
+          
+          // Return as array of objects with unique names
+          return Array.from(finalSet).map(name => ({ name }));
+        };
+
+        amenities = processRawAmenities(listing.amenities || listing.property_amenities);
 
         console.log('Processed amenities:', amenities);
 
@@ -939,8 +1026,8 @@
               ${listing.images && listing.images.length > 1 ? `
                 <div class="thumbnail-grid">
                   ${listing.images.slice(0, 6).map((img, index) => {
-                    const imgUrl = img.image_url || img.image;
-                    return `
+          const imgUrl = img.image_url || img.image;
+          return `
                     <img src="${imgUrl}" 
                          alt="Property image ${index + 1}" 
                          class="thumbnail ${index === 0 ? 'active' : ''}"
@@ -967,9 +1054,27 @@
                 <div class="info-grid">
                   <div class="info-card">
                     <div class="info-icon"><i class="fas fa-tag"></i></div>
-                    <span class="info-label">Price</span>
-                    <span class="info-value price">₦${listing.price ? formatPrice(listing.price) : 'N/A'}</span>
-                    <small class="info-label">per annum</small>
+                    <span class="info-label">Pricing Plans</span>
+                    <div class="pricing-details" style="display: flex; flex-direction: column; gap: 10px; align-items: center;">
+                      ${listing.year_price && listing.year_price > 0 ? `
+                        <div class="price-row">
+                          <span class="info-value price" style="font-size: 24px;">₦${formatPrice(listing.year_price)}</span>
+                          <small class="info-label" style="display: block; margin-top: 2px;">Annual Payment</small>
+                        </div>
+                      ` : ''}
+                      
+                      ${listing.first_price && listing.first_price > 0 ? `
+                        <div class="price-row" style="padding-top: 8px; border-top: 1px solid var(--medium-gray); width: 80%;">
+                          <span class="info-value" style="font-size: 20px; color: var(--primary-color); font-weight: 700;">₦${formatPrice(listing.first_price)}</span>
+                          <small class="info-label" style="display: block; margin-top: 2px;">First Year (Total)</small>
+                        </div>
+                      ` : ''}
+
+                      ${(!listing.year_price || listing.year_price == 0) && (!listing.first_price || listing.first_price == 0) ? `
+                        <span class="info-value">Contact Agent</span>
+                        <small class="info-label">For pricing info</small>
+                      ` : ''}
+                    </div>
                   </div>
                   
                   ${listing.total_rooms ? `
@@ -1012,10 +1117,10 @@
                       <span class="detail-label">Last Updated:</span>
                       <span class="detail-value">
                         ${listing.updated_at ? new Date(listing.updated_at).toLocaleDateString('en-NG', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
-        }) : 'Date not available'}
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          }) : 'Date not available'}
                       </span>
                     </div>
                   </div>
@@ -1028,9 +1133,9 @@
                 <h2 class="section-title">Amenities & Features</h2>
                 <div class="amenities-grid">
                   ${amenities.map(amenity => {
-                    const amenityName = amenity.name || amenity;
-                    const iconName = getAmenityIcon(amenityName);
-                    return `
+            const amenityName = amenity.name || amenity;
+            const iconName = getAmenityIcon(amenityName);
+            return `
                     <div class="amenity-item">
                       <div class="amenity-icon">
                         <i class="fas fa-${iconName}"></i>
