@@ -2,61 +2,53 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+
   <title>Book-It | Find Hostels & Lodges</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="css/style.css">
-</head>
 
+  <meta
+    name="description"
+    content="BookIt helps students find and book hostels and lodges easily and securely."
+  />
 
-<!-- Floating Agent Button -->
-<div class="floating-agent-btn" id="floatingAgentBtn">
-  <div class="floating-btn-content">
-    <i class="fas fa-crown"></i>
-    <span class="floating-btn-text">Become an Agent</span>
-  </div>
-</div>
+  <!-- Open Graph (WhatsApp, Facebook, LinkedIn) -->
+  <meta property="og:title" content="BookIt" />
+  <meta
+    property="og:description"
+    content="Find, compare & book hostels and lodges near you — fast and easy."
+  />
+  <meta
+    property="og:image"
+    content="https://bookit.it.com/logo.png"
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://bookit.it.com" />
 
-<!-- Agent Modal -->
-<div class="agent-modal" id="agentModal">
-  <div class="agent-modal-content">
-    <div class="agent-modal-header">
-      <h3>Become a Book-It Agent</h3>
-      <button class="close-agent-modal" id="closeAgentModal">&times;</button>
-    </div>
-    <div class="agent-modal-body">
-      <div id="agentFormContainer">
-        <form id="agentForm" action="https://formspree.io/f/xbdoojgo" method="POST">
-          <input type="email" name="email" id="agentEmail" placeholder="Your Email Address" required>
-          <input type="text" name="agency_name" id="agencyName" placeholder="Your Agency Name" required>
-          <textarea name="message" id="agentMessage" placeholder="Tell us about your experience (optional)"
-            rows="3"></textarea>
-          <input type="hidden" name="_subject" value="New Agent Request - Book-It">
-          <input type="hidden" name="_replyto" id="replyToEmail">
-          <button type="submit" id="submitAgentRequest">Submit Request</button>
-          <p class="modal-note">
-            <i class="fas fa-info-circle"></i> We'll email you within 24 hours. Please check your email (and spam
-            folder) regularly!
-          </p>
-        </form>
-      </div>
-      <div id="agentSuccessMessage" class="form-success" style="display: none;">
-        <i class="fas fa-check-circle"></i>
-        <h4>Request Submitted!</h4>
-        <p>Thank you for your interest in becoming a Book-It Agent.</p>
-        <p><strong>Important:</strong> Please check your email (and spam folder) regularly within the next 24 hours for
-          our response.</p>
-        <p>We look forward to working with you!</p>
-        <button id="closeSuccessMsg"
-          style="margin-top:15px; padding:8px 20px; background:#667eea; color:white; border:none; border-radius:6px; cursor:pointer;">
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="BookIt" />
+  <meta
+    name="twitter:description"
+    content="Simple hostel & lodge booking for students."
+  />
+  <meta
+    name="twitter:image"
+    content="https://bookit.it.com/logo.png"
+  />
 
-<style>
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/logo.png" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
   /* Floating Button Styles */
   .floating-agent-btn {
     position: fixed;
@@ -274,245 +266,64 @@
     line-height: 1.5;
   }
 </style>
+</head>
 
-<script>
-  // Floating Agent Button Functionality
-  document.addEventListener('DOMContentLoaded', function () {
-    const floatingBtn = document.getElementById('floatingAgentBtn');
-    const agentModal = document.getElementById('agentModal');
-    const closeAgentModal = document.getElementById('closeAgentModal');
-    const agentForm = document.getElementById('agentForm');
-    const agentEmail = document.getElementById('agentEmail');
-    const replyToEmail = document.getElementById('replyToEmail');
 
-    let lastScrollTop = 0;
-    let isMinimized = false;
 
-    // Function to check if user is authenticated
-    function isAuthenticated() {
-      return localStorage.getItem('accessToken') || localStorage.getItem('loggedInUser') === 'true';
-    }
 
-    // Function to get user data
-    function getUserData() {
-      const userData = localStorage.getItem('userData');
-      if (userData) {
-        try {
-          return JSON.parse(userData);
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-          return null;
-        }
-      }
-      return null;
-    }
 
-    // Function to check if user is an agent
-    function isUserAgent() {
-      const user = getUserData();
-      const userRole = localStorage.getItem('userRole');
-      return (user && user.is_agent === true) || (userRole && userRole.toLowerCase() === 'agent');
-    }
 
-    // Function to handle agent button visibility
-    function handleAgentButtonVisibility() {
-      if (!floatingBtn) return;
 
-      const isAuthenticatedUser = isAuthenticated();
-      const isAgent = isUserAgent();
 
-      // Show button if user is NOT authenticated
-      // OR if user is authenticated but NOT an agent
-      if (!isAuthenticatedUser || (isAuthenticatedUser && !isAgent)) {
-        floatingBtn.style.display = 'flex';
-      } else {
-        // Hide button only if user is authenticated AND is an agent
-        floatingBtn.style.display = 'none';
-      }
-    }
-
-    // Initialize button visibility
-    handleAgentButtonVisibility();
-
-    // Open modal on button click with authentication check
-    floatingBtn.addEventListener('click', function () {
-      if (!isAuthenticated()) {
-        // User is NOT authenticated - redirect to login page
-        window.location.href = 'login.html';
-        return;
-      }
-
-      // User is authenticated, check if they're already an agent
-      const isAgent = isUserAgent();
-
-      if (isAgent) {
-        // User is already an agent, button should be hidden (already handled in handleAgentButtonVisibility)
-        return;
-      }
-
-      // User is authenticated and not an agent, show modal
-      agentModal.classList.add('active');
-
-      // Reset form and show form container
-      const agentFormContainer = document.getElementById('agentFormContainer');
-      const agentSuccessMessage = document.getElementById('agentSuccessMessage');
-
-      if (agentFormContainer) agentFormContainer.style.display = 'block';
-      if (agentSuccessMessage) agentSuccessMessage.style.display = 'none';
-
-      agentForm.reset();
-
-      // Pre-fill email if user is logged in
-      const user = getUserData();
-      const userEmailStored = localStorage.getItem('userEmail');
-      const emailToFill = (user && user.email) ? user.email : userEmailStored;
-
-      if (emailToFill) {
-        agentEmail.value = emailToFill;
-        replyToEmail.value = emailToFill;
-      }
-    });
-
-    // Close modal
-    closeAgentModal.addEventListener('click', function () {
-      agentModal.classList.remove('active');
-    });
-
-    // Close modal when clicking outside
-    agentModal.addEventListener('click', function (e) {
-      if (e.target === agentModal) {
-        agentModal.classList.remove('active');
-      }
-    });
-
-    // Handle email input to sync with replyto field
-    agentEmail.addEventListener('input', function () {
-      replyToEmail.value = agentEmail.value;
-    });
-
-    // Handle form submission
-    agentForm.addEventListener('submit', async function (e) {
-      e.preventDefault();
-
-      const submitBtn = document.getElementById('submitAgentRequest');
-      const originalText = submitBtn.textContent;
-
-      // Validate email
-      if (!validateEmail(agentEmail.value)) {
-        alert('Please enter a valid email address');
-        return;
-      }
-
-      // Disable button and show loading
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Sending...';
-      submitBtn.style.opacity = '0.7';
-
-      try {
-        const formData = new FormData(agentForm);
-
-        // Add current timestamp
-        formData.append('timestamp', new Date().toISOString());
-        formData.append('source', 'Book-It Website');
-
-        const response = await fetch(agentForm.action, {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'Accept': 'application/json'
-          }
-        });
-
-        if (response.ok) {
-          // Show success message
-          const agentFormContainer = document.getElementById('agentFormContainer');
-          const agentSuccessMessage = document.getElementById('agentSuccessMessage');
-          const closeSuccessMsg = document.getElementById('closeSuccessMsg');
-
-          if (agentFormContainer) agentFormContainer.style.display = 'none';
-          if (agentSuccessMessage) agentSuccessMessage.style.display = 'block';
-
-          // Add event listener to close button in success message
-          if (closeSuccessMsg) {
-            closeSuccessMsg.addEventListener('click', function () {
-              agentModal.classList.remove('active');
-            });
-          }
-
-          // Auto-close modal after 5 seconds
-          setTimeout(() => {
-            if (agentModal.classList.contains('active') && agentSuccessMessage.style.display === 'block') {
-              agentModal.classList.remove('active');
-            }
-          }, 5000);
-
-        } else {
-          throw new Error('Form submission failed');
-        }
-
-      } catch (error) {
-        console.error('Error:', error);
-        alert('Sorry, there was an error submitting your request. Please try again or contact us directly.');
-
-        // Reset button
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-        submitBtn.style.opacity = '1';
-      }
-    });
-
-    // Scroll behavior
-    window.addEventListener('scroll', function () {
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-      // Show/hide button on scroll
-      if (scrollTop > lastScrollTop) {
-        // Scrolling down - minimize
-        if (!isMinimized) {
-          floatingBtn.classList.add('minimized');
-          isMinimized = true;
-        }
-      } else {
-        // Scrolling up - show full
-        if (isMinimized) {
-          floatingBtn.classList.remove('minimized');
-          isMinimized = false;
-        }
-      }
-
-      // Always show full button at top of page
-      if (scrollTop < 100) {
-        floatingBtn.classList.remove('minimized');
-        isMinimized = false;
-      }
-
-      lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-    });
-
-    // Email validation function
-    function validateEmail(email) {
-      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return re.test(email);
-    }
-
-    // Close modal with Escape key
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && agentModal.classList.contains('active')) {
-        agentModal.classList.remove('active');
-      }
-    });
-
-    // Also update button visibility when user logs in/out elsewhere
-    window.addEventListener('storage', function (e) {
-      if (e.key === 'accessToken' || e.key === 'userData' || e.key === 'userRole') {
-        handleAgentButtonVisibility();
-      }
-    });
-  });
-</script>
 
 <body>
 
+  <!-- Floating Agent Button -->
+<div class="floating-agent-btn" id="floatingAgentBtn">
+  <div class="floating-btn-content">
+    <i class="fas fa-crown"></i>
+    <span class="floating-btn-text">Become an Agent</span>
+  </div>
+</div>
+
+<!-- Agent Modal -->
+<div class="agent-modal" id="agentModal">
+  <div class="agent-modal-content">
+    <div class="agent-modal-header">
+      <h3>Become a Book-It Agent</h3>
+      <button class="close-agent-modal" id="closeAgentModal">&times;</button>
+    </div>
+    <div class="agent-modal-body">
+      <div id="agentFormContainer">
+        <form id="agentForm" action="https://formspree.io/f/xbdoojgo" method="POST">
+          <input type="email" name="email" id="agentEmail" placeholder="Your Email Address" required>
+          <input type="text" name="agency_name" id="agencyName" placeholder="Your Agency Name" required>
+          <textarea name="message" id="agentMessage" placeholder="Tell us about your experience (optional)"
+            rows="3"></textarea>
+          <input type="hidden" name="_subject" value="New Agent Request - Book-It">
+          <input type="hidden" name="_replyto" id="replyToEmail">
+          <button type="submit" id="submitAgentRequest">Submit Request</button>
+          <p class="modal-note">
+            <i class="fas fa-info-circle"></i> We'll email you within 24 hours. Please check your email (and spam
+            folder) regularly!
+          </p>
+        </form>
+      </div>
+      <div id="agentSuccessMessage" class="form-success" style="display: none;">
+        <i class="fas fa-check-circle"></i>
+        <h4>Request Submitted!</h4>
+        <p>Thank you for your interest in becoming a Book-It Agent.</p>
+        <p><strong>Important:</strong> Please check your email (and spam folder) regularly within the next 24 hours for
+          our response.</p>
+        <p>We look forward to working with you!</p>
+        <button id="closeSuccessMsg"
+          style="margin-top:15px; padding:8px 20px; background:#667eea; color:white; border:none; border-radius:6px; cursor:pointer;">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
   <!-- NAVBAR -->
   <header class="navbar">
     <a href="index.html" class="logo">
@@ -919,4 +730,239 @@
 
 </body>
 
+<script>
+  // Floating Agent Button Functionality
+  document.addEventListener('DOMContentLoaded', function () {
+    const floatingBtn = document.getElementById('floatingAgentBtn');
+    const agentModal = document.getElementById('agentModal');
+    const closeAgentModal = document.getElementById('closeAgentModal');
+    const agentForm = document.getElementById('agentForm');
+    const agentEmail = document.getElementById('agentEmail');
+    const replyToEmail = document.getElementById('replyToEmail');
+
+    let lastScrollTop = 0;
+    let isMinimized = false;
+
+    // Function to check if user is authenticated
+    function isAuthenticated() {
+      return localStorage.getItem('accessToken') || localStorage.getItem('loggedInUser') === 'true';
+    }
+
+    // Function to get user data
+    function getUserData() {
+      const userData = localStorage.getItem('userData');
+      if (userData) {
+        try {
+          return JSON.parse(userData);
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+          return null;
+        }
+      }
+      return null;
+    }
+
+    // Function to check if user is an agent
+    function isUserAgent() {
+      const user = getUserData();
+      const userRole = localStorage.getItem('userRole');
+      return (user && user.is_agent === true) || (userRole && userRole.toLowerCase() === 'agent');
+    }
+
+    // Function to handle agent button visibility
+    function handleAgentButtonVisibility() {
+      if (!floatingBtn) return;
+
+      const isAuthenticatedUser = isAuthenticated();
+      const isAgent = isUserAgent();
+
+      // Show button if user is NOT authenticated
+      // OR if user is authenticated but NOT an agent
+      if (!isAuthenticatedUser || (isAuthenticatedUser && !isAgent)) {
+        floatingBtn.style.display = 'flex';
+      } else {
+        // Hide button only if user is authenticated AND is an agent
+        floatingBtn.style.display = 'none';
+      }
+    }
+
+    // Initialize button visibility
+    handleAgentButtonVisibility();
+
+    // Open modal on button click with authentication check
+    floatingBtn.addEventListener('click', function () {
+      if (!isAuthenticated()) {
+        // User is NOT authenticated - redirect to login page
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // User is authenticated, check if they're already an agent
+      const isAgent = isUserAgent();
+
+      if (isAgent) {
+        // User is already an agent, button should be hidden (already handled in handleAgentButtonVisibility)
+        return;
+      }
+
+      // User is authenticated and not an agent, show modal
+      agentModal.classList.add('active');
+
+      // Reset form and show form container
+      const agentFormContainer = document.getElementById('agentFormContainer');
+      const agentSuccessMessage = document.getElementById('agentSuccessMessage');
+
+      if (agentFormContainer) agentFormContainer.style.display = 'block';
+      if (agentSuccessMessage) agentSuccessMessage.style.display = 'none';
+
+      agentForm.reset();
+
+      // Pre-fill email if user is logged in
+      const user = getUserData();
+      const userEmailStored = localStorage.getItem('userEmail');
+      const emailToFill = (user && user.email) ? user.email : userEmailStored;
+
+      if (emailToFill) {
+        agentEmail.value = emailToFill;
+        replyToEmail.value = emailToFill;
+      }
+    });
+
+    // Close modal
+    closeAgentModal.addEventListener('click', function () {
+      agentModal.classList.remove('active');
+    });
+
+    // Close modal when clicking outside
+    agentModal.addEventListener('click', function (e) {
+      if (e.target === agentModal) {
+        agentModal.classList.remove('active');
+      }
+    });
+
+    // Handle email input to sync with replyto field
+    agentEmail.addEventListener('input', function () {
+      replyToEmail.value = agentEmail.value;
+    });
+
+    // Handle form submission
+    agentForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById('submitAgentRequest');
+      const originalText = submitBtn.textContent;
+
+      // Validate email
+      if (!validateEmail(agentEmail.value)) {
+        alert('Please enter a valid email address');
+        return;
+      }
+
+      // Disable button and show loading
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending...';
+      submitBtn.style.opacity = '0.7';
+
+      try {
+        const formData = new FormData(agentForm);
+
+        // Add current timestamp
+        formData.append('timestamp', new Date().toISOString());
+        formData.append('source', 'Book-It Website');
+
+        const response = await fetch(agentForm.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          // Show success message
+          const agentFormContainer = document.getElementById('agentFormContainer');
+          const agentSuccessMessage = document.getElementById('agentSuccessMessage');
+          const closeSuccessMsg = document.getElementById('closeSuccessMsg');
+
+          if (agentFormContainer) agentFormContainer.style.display = 'none';
+          if (agentSuccessMessage) agentSuccessMessage.style.display = 'block';
+
+          // Add event listener to close button in success message
+          if (closeSuccessMsg) {
+            closeSuccessMsg.addEventListener('click', function () {
+              agentModal.classList.remove('active');
+            });
+          }
+
+          // Auto-close modal after 5 seconds
+          setTimeout(() => {
+            if (agentModal.classList.contains('active') && agentSuccessMessage.style.display === 'block') {
+              agentModal.classList.remove('active');
+            }
+          }, 5000);
+
+        } else {
+          throw new Error('Form submission failed');
+        }
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Sorry, there was an error submitting your request. Please try again or contact us directly.');
+
+        // Reset button
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        submitBtn.style.opacity = '1';
+      }
+    });
+
+    // Scroll behavior
+    window.addEventListener('scroll', function () {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+      // Show/hide button on scroll
+      if (scrollTop > lastScrollTop) {
+        // Scrolling down - minimize
+        if (!isMinimized) {
+          floatingBtn.classList.add('minimized');
+          isMinimized = true;
+        }
+      } else {
+        // Scrolling up - show full
+        if (isMinimized) {
+          floatingBtn.classList.remove('minimized');
+          isMinimized = false;
+        }
+      }
+
+      // Always show full button at top of page
+      if (scrollTop < 100) {
+        floatingBtn.classList.remove('minimized');
+        isMinimized = false;
+      }
+
+      lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+    });
+
+    // Email validation function
+    function validateEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
+    }
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && agentModal.classList.contains('active')) {
+        agentModal.classList.remove('active');
+      }
+    });
+
+    // Also update button visibility when user logs in/out elsewhere
+    window.addEventListener('storage', function (e) {
+      if (e.key === 'accessToken' || e.key === 'userData' || e.key === 'userRole') {
+        handleAgentButtonVisibility();
+      }
+    });
+  });
+</script>
 </html>
