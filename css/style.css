@@ -455,7 +455,7 @@ body {
     .listings-container {
       display: grid;
       /* Use 2 columns on mobile, 1fr each */
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 12px;
       /* smaller gap for mobile */
       padding: 10px;
