@@ -495,13 +495,13 @@ body {
   }
 
   .listing-card img {
-    height: 140px;
+    height: 120px;
     object-fit: cover;
     border-bottom: 1px solid #eee;
   }
 
   .card-body {
-    padding: 14px 16px;
+    padding: 12px 14px;
   }
 
   .card-body h4 {
@@ -510,13 +510,13 @@ body {
   }
 
   .card-body p {
-    font-size: 13px;
+    font-size: 12px;
     line-height: 1.35;
     -webkit-line-clamp: 4;
   }
 
   .price {
-    font-size: 15px;
+    font-size: 12px;
     margin-top: 6px;
   }
 
@@ -527,7 +527,7 @@ body {
 
   .card-actions button {
     padding: 10px 0;
-    font-size: 13px;
+    font-size: 12px;
     /* border-radius: 25px; */
   }
 
