@@ -310,18 +310,25 @@ body {
 }
 
 /* =========================
-   LISTINGS & CARDS (DESKTOP)
+   LISTINGS & CARDS
 ========================= */
 .listings-container {
   display: flex;
   flex-wrap: wrap;
+  /* allow items to wrap to the next line */
   gap: 20px;
+  /* spacing between items */
   padding: 20px;
+  /* justify-content: center; */
+  /* center items horizontally */
 }
 
+/* Optional: make each item responsive like the grid */
 .listings-container>* {
   flex: 1 1 250px;
+  /* grow, shrink, base width 250px */
   max-width: 300px;
+  /* optional max width for each item */
 }
 
 .listing-card {
@@ -427,6 +434,112 @@ body {
 .delete-btn:hover {
   background: #ffe4e6;
   transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .card-actions {
+    padding: 12px;
+  }
+
+  .edit-btn,
+  .delete-btn {
+    font-size: 15px;
+    padding: 13px 0;
+    border-radius: 0px;
+  }
+}
+
+/* ---- Mobile Grid ---- */
+@media (max-width: 768px) {
+  @media (max-width: 768px) {
+    .listings-container {
+      display: grid;
+      /* Use 2 columns on mobile, 1fr each */
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      /* smaller gap for mobile */
+      padding: 10px;
+    }
+
+    .listing-card {
+      width: 100%;
+      /* Let grid manage the width */
+      height: 300px;
+      /* auto height for content */
+    }
+  }
+
+  .clickable-card {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .clickable-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .listing-card {
+    width: 100%;
+    height: auto;
+    /* Let content decide height */
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  .listing-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .listing-card img {
+    height: 120px;
+    object-fit: cover;
+    border-bottom: 1px solid #eee;
+  }
+
+  .card-body {
+    padding: 12px 14px;
+  }
+
+  .card-body h4 {
+    font-size: 17px;
+    margin-bottom: 6px;
+  }
+
+  .card-body p {
+    font-size: 12px;
+    line-height: 1.35;
+    -webkit-line-clamp: 4;
+  }
+
+  .price {
+    font-size: 12px;
+    margin-top: 6px;
+  }
+
+  .card-actions {
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .card-actions button {
+    padding: 10px 0;
+    font-size: 12px;
+    /* border-radius: 25px; */
+  }
+
+  .edit-btn:hover {
+    background: linear-gradient(135deg, #0a7cff, #2b1bbf);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+  }
+
+  .delete-btn:hover {
+    background-color: #e74c3c;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+  }
 }
 
 /* =========================
@@ -585,13 +698,16 @@ body {
   #userArea {
     display: flex;
     flex-wrap: wrap;
+    /* wrap to next line if screen is narrow */
     gap: 8px;
+    /* spacing between links */
     margin-bottom: 20px;
   }
 
   #userArea>a,
   #userArea>button.logout-btn {
     display: inline-flex;
+    /* horizontal */
     align-items: center;
     justify-content: center;
     padding: 8px 14px;
@@ -610,6 +726,7 @@ body {
   }
 }
 
+
 /* =========================
    MOBILE STYLES
 ========================= */
@@ -625,6 +742,8 @@ body {
   .navbar .logo img {
     height: 26px;
   }
+
+
 
   .desktop-nav.active {
     transform: translateY(0);
@@ -642,6 +761,8 @@ body {
   .search-box {
     display: none;
   }
+
+
 
   /* Details page */
   .details-card img {
@@ -679,6 +800,10 @@ body {
     padding: 0;
     gap: 0;
   }
+
+
+
+
 }
 
 /* =========================
@@ -712,6 +837,7 @@ body {
   justify-content: center;
 }
 
+
 /* MOBILE NAVIGATION STYLING */
 @media (max-width: 768px) {
 
@@ -725,6 +851,7 @@ body {
     background: #fff;
     padding: 80px 20px 20px;
     display: flex;
+    /* 🔑 NEVER NONE */
     flex-direction: column;
     gap: 18px;
     transform: translateX(100%);
@@ -780,6 +907,9 @@ body {
     color: #222;
     z-index: 1100;
   }
+
+
+
 
   /* =========================
    MOBILE SEARCH BAR
@@ -903,6 +1033,16 @@ body {
     cursor: pointer;
   }
 
+  /* MOBILE NAV BASE STATE */
+  @media (max-width: 768px) {
+
+
+    /* WHEN MENU IS OPEN */
+    .desktop-nav.active {}
+  }
+
+
+
   @media (max-width: 768px) {
     .mobile-menu-btn {
       display: block;
@@ -912,6 +1052,7 @@ body {
       cursor: pointer;
     }
   }
+
 
   /* MOBILE MENU */
   .mobile-nav {
@@ -940,6 +1081,7 @@ body {
   .mobile-nav.active {
     display: block;
   }
+
 }
 
 #mobileNav {
@@ -955,6 +1097,7 @@ body {
 #mobileNav {
   position: fixed;
   top: 70px;
+  /* adjust to your navbar height */
   right: 0;
   width: 100%;
   max-width: 300px;
@@ -972,6 +1115,7 @@ body {
 }
 
 /* MOBILE MENU LINKS */
+/* Divider lines between menu items */
 #mobileNav a,
 #mobileNav .logout-btn {
   display: block;
@@ -996,276 +1140,11 @@ body {
   border-bottom: none;
 }
 
+
 /* Prevent color change on hover / visited */
 #mobileNav a:hover,
 #mobileNav a:focus,
 #mobileNav a:visited {
   color: #000 !important;
   text-decoration: none !important;
-}
-
-/* =========================
-   MOBILE LISTINGS - AIRBNB STYLE GRID (Name & Price Only)
-========================= */
-@media (max-width: 768px) {
-  /* Override desktop listings for mobile */
-  .listings-container {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 2px !important;
-    padding: 2px !important;
-    background: #fff;
-  }
-
-  .listings-container > * {
-    flex: none !important;
-    max-width: 100% !important;
-    width: 100% !important;
-  }
-
-  .listing-card {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: auto !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    background: #fff !important;
-    display: flex !important;
-    flex-direction: column !important;
-    padding: 4px !important;
-    gap: 0 !important;
-    margin: 0 !important;
-    transform: none !important;
-    border: none !important;
-  }
-
-  .listing-card:hover {
-    transform: none !important;
-    box-shadow: none !important;
-  }
-
-  .listing-card img {
-    width: 100% !important;
-    height: auto !important;
-    aspect-ratio: 1/1 !important;
-    object-fit: cover !important;
-    border-radius: 12px !important;
-  }
-
-  .listing-card:hover img {
-    transform: none !important;
-  }
-
-  .card-body {
-    padding: 8px 4px 4px 4px !important;
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: flex-start !important;
-    gap: 2px !important;
-    background: #fff;
-  }
-
-  .card-body h4 {
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    margin: 0 !important;
-    color: #222222 !important;
-    line-height: 1.3 !important;
-    display: -webkit-box !important;
-    -webkit-line-clamp: 2 !important;
-    -webkit-box-orient: vertical !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: normal !important;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  }
-
-  /* Hide all paragraphs by default */
-  .card-body p {
-    display: none !important;
-  }
-
-  /* Show only the price paragraph with better styling */
-  .card-body p:last-of-type {
-    display: block !important;
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    background-clip: text !important;
-    margin: 4px 0 0 0 !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    letter-spacing: -0.02em !important;
-  }
-
-  /* Alternative: If you prefer a solid color instead of gradient */
-  .card-body p:last-of-type.solid-price {
-    color: #0a7cff !important;
-    background: none !important;
-    -webkit-text-fill-color: initial !important;
-  }
-
-  /* Handle price class if it exists with better styling */
-  .card-body .price {
-    display: block !important;
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    background-clip: text !important;
-    margin: 4px 0 0 0 !important;
-    letter-spacing: -0.02em !important;
-  }
-
-  /* Hide action buttons on mobile */
-  .card-actions {
-    display: none !important;
-  }
-
-  /* Hide location, date, room type, agency info */
-  .card-body h5,
-  .card-body span,
-  .card-body .fa-map-marker-alt,
-  .card-body .fa-building,
-  .card-body .fa-calendar-alt {
-    display: none !important;
-  }
-
-  /* Hide any text with location or room info */
-  [class*=""],
-  [class*=""],
-  [class*="room"],
-  [class*="Room"] {
-    display: none !important;
-  }
-
-  /* Remove any leftover styles */
-  .listings-container {
-    flex-wrap: nowrap !important;
-  }
-
-  /* Ensure consistent spacing for all cards */
-  .listing-card {
-    container-type: inline-size !important;
-  }
-}
-
-/* For very small phones */
-@media (max-width: 480px) {
-  .listing-card img {
-    border-radius: 10px !important;
-  }
-  
-  .card-body {
-    padding: 6px 3px 3px 3px !important;
-  }
-
-  .card-body h4 {
-    font-size: 11px !important;
-  }
-
-  .card-body p:last-of-type,
-  .card-body .price {
-    font-size: 12px !important;
-    font-weight: 700 !important;
-  }
-}
-
-/* For larger phones */
-@media (min-width: 481px) and (max-width: 768px) {
-  .listing-card img {
-    border-radius: 14px !important;
-  }
-  
-  .card-body h4 {
-    font-size: 13px !important;
-  }
-
-  .card-body p:last-of-type,
-  .card-body .price {
-    font-size: 14px !important;
-    font-weight: 700 !important;
-  }
-}
-
-/* Remove duplicate media query at the end */
-
-  /* Remove any leftover styles */
-  .listings-container {
-    flex-wrap: nowrap !important;
-  }
-
-  /* Ensure consistent spacing for all cards */
-  .listing-card {
-    container-type: inline-size !important;
-  }
-
-
-/* For very small phones */
-@media (max-width: 480px) {
-  .listing-card img {
-    border-radius: 10px !important;
-  }
-  
-  .card-body {
-    padding: 6px 3px 3px 3px !important;
-  }
-
-  .card-body h4 {
-    font-size: 11px !important;
-  }
-
-  .card-body p:last-of-type,
-  .card-body .price {
-    font-size: 11px !important;
-  }
-}
-
-/* For larger phones */
-@media (min-width: 481px) and (max-width: 768px) {
-  .listing-card img {
-    border-radius: 14px !important;
-  }
-  
-  .card-body h4 {
-    font-size: 13px !important;
-  }
-
-  .card-body p:last-of-type,
-  .card-body .price {
-    font-size: 12px !important;
-  }
-}
-
-/* For smaller phones */
-@media (max-width: 480px) {
-  .listing-card {
-    padding: 16px !important;
-    gap: 16px !important;
-  }
-
-  .listing-card img {
-    width: 120px !important;
-    height: 120px !important;
-    min-width: 120px !important;
-  }
-
-  .card-body h4 {
-    font-size: 16px !important;
-  }
-
-  .card-body p {
-    font-size: 15px !important;
-  }
-
-  .card-body p:last-of-type {
-    font-size: 16px !important;
-  }
 }
