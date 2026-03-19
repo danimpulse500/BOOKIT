@@ -464,7 +464,7 @@ body {
     .listing-card {
       width: 100%;
       /* Let grid manage the width */
-      height: 300px;
+      height: 260px;
       /* auto height for content */
     }
   }
