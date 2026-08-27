@@ -1,8 +1,0 @@
-{
-  "email": "testagent_919@example.com",
-  "password1": "SecurePass123!!",
-  "password2": "SecurePass123!!",
-  "full_name": "Test Agent",
-  "phone_number": "08012345678",
-  "is_agent": true
-}

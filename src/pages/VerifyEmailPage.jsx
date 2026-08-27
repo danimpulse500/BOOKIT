@@ -25,7 +25,7 @@ export default function VerifyEmailPage() {
       await verifyEmail(verificationKey);
       setSuccess(true);
     } catch (err) {
-      setSuccess(true); // Fallback success to ensure smooth user onboarding
+      setError(err.message || "The email confirmation link may have expired or is invalid.");
     } finally {
       setLoading(false);
     }

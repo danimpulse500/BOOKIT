@@ -29,6 +29,8 @@ const getAmenityIcon = (name) => {
   return <Sparkles className="w-4 h-4 text-indigo-400" />;
 };
 
+const getAmenityName = (item) => typeof item === 'string' ? item : item?.name || 'Amenity';
+
 export default function AmenitiesList({ amenities = [] }) {
   if (!amenities || amenities.length === 0) return null;
 
@@ -39,8 +41,8 @@ export default function AmenitiesList({ amenities = [] }) {
           key={idx} 
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 text-xs font-medium border border-slate-200 transition-all duration-200"
         >
-          {getAmenityIcon(item)}
-          <span>{item}</span>
+          {getAmenityIcon(getAmenityName(item))}
+          <span>{getAmenityName(item)}</span>
         </div>
       ))}
     </div>

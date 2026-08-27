@@ -1,26 +1,36 @@
-import { supabase } from './supabase';
-import { mockListings } from './mockData';
-
-const API_BASE = "https://bookit-api-tpvz.onrender.com/api";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://api.bookit.it.com/api";
 
 // General fetch helper
-async function apiRequest(endpoint, method = "GET", body = null, token = null) {
-  const headers = {
-    "Content-Type": "application/json"
-  };
-  if (token) headers["Authorization"] = `Token ${token}`;
+async function apiRequest(endpoint, method = "GET", body = null, token = null, options = {}) {
+  const headers = { Accept: "application/json" };
+  if (body !== null && !(body instanceof FormData)) headers["Content-Type"] = "application/json";
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const query = options.query ? `?${new URLSearchParams(options.query).toString()}` : "";
 
   try {
-    const response = await fetch(`${API_BASE}${endpoint}`, {
+    const response = await fetch(`${API_BASE}${endpoint}${query}`, {
       method,
       headers,
-      body: body ? JSON.stringify(body) : null
+      body: body === null ? null : body instanceof FormData ? body : JSON.stringify(body)
     });
 
-    const data = await response.json().catch(() => ({}));
+    const responseText = await response.text();
+    let data = {};
+
+    try {
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      data = { detail: responseText };
+    }
 
     if (!response.ok) {
-      throw new Error(data.detail || data.message || "Network request failed");
+      const errorMessage = getApiErrorMessage(data) ||
+        `Request failed with status ${response.status} ${response.statusText}`;
+      const error = new Error(errorMessage);
+      error.status = response.status;
+      error.data = data;
+      throw error;
     }
     return data;
   } catch (error) {
@@ -35,183 +45,91 @@ async function apiRequest(endpoint, method = "GET", body = null, token = null) {
  * Sends Google ID token to backend or falls back to mock login
  */
 export async function loginWithGoogleBackend(googleToken) {
-  try {
-    const data = await apiRequest("/auth/google/", "POST", { token: googleToken });
-    return data;
-  } catch (err) {
-    console.warn("Backend Google auth failed. Using local fallback authentication:", err.message);
-    return {
-      key: "mock_google_token_" + Date.now(),
-      user: {
-        email: "googleuser@bookit.com",
-        full_name: "Google User",
-        is_agent: false
-      }
-    };
-  }
+  return apiRequest("/auth/google/", "POST", { id_token: googleToken });
 }
 
-/**
- * Direct Google OAuth sign in via Supabase
- */
-export async function signInWithGoogleSupabase() {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: window.location.origin,
-    },
-  });
-  if (error) throw error;
-  return data;
-}
-
-/**
- * Send Phone OTP via Supabase
- */
-export async function sendPhoneOTP(phoneNumber) {
-  const { data, error } = await supabase.auth.signInWithOtp({
-    phone: phoneNumber,
-  });
-  if (error) throw error;
-  return data;
-}
-
-/**
- * Verify Phone OTP via Supabase
- */
-export async function verifyPhoneOTP(phoneNumber, token) {
-  const { data, error } = await supabase.auth.verifyOtp({
-    phone: phoneNumber,
-    token: token,
-    type: 'sms',
-  });
-  if (error) throw error;
-  return data;
+export async function socialLogin(provider, credentials) {
+  return apiRequest(`/auth/${encodeURIComponent(provider)}/`, "POST", credentials);
 }
 
 export async function loginUser(credentials) {
-  try {
-    const res = await apiRequest("/auth/login/", "POST", credentials);
-    return res;
-  } catch (err) {
-    console.warn("Backend login failed. Using local fallback authentication:", err.message);
+  return apiRequest("/auth/login/", "POST", credentials);
+}
 
-    if (credentials?.email && credentials?.password) {
-      const email = credentials.email;
-      return {
-        key: "mock_token_" + Date.now(),
-        user: {
-          email: email,
-          full_name: email.split('@')[0],
-          is_agent: email.toLowerCase().includes('agent')
-        }
-      };
-    }
-    throw err;
-  }
+export async function obtainToken(credentials) {
+  return apiRequest("/token/", "POST", credentials);
+}
+
+export async function refreshToken(refresh) {
+  return apiRequest("/auth/token/refresh/", "POST", { refresh });
+}
+
+export async function verifyToken(token) {
+  return apiRequest("/auth/token/verify/", "POST", { token });
 }
 
 export async function registerUser(userData) {
-  try {
-    return await apiRequest("/auth/registration/", "POST", userData);
-  } catch (err) {
-    console.warn("Backend registration failed. Fallback simulation active.");
-    return {
-      detail: "Registration submitted successfully",
-      key: "mock_token_" + Date.now(),
-      user: {
-        email: userData.email,
-        full_name: userData.full_name || userData.email.split('@')[0],
-        is_agent: !!userData.is_agent
-      }
-    };
-  }
+  return apiRequest("/auth/registration/", "POST", userData);
+}
+
+export async function registerUserLegacy(userData) {
+  return apiRequest("/auth/register/", "POST", userData);
 }
 
 export async function verifyEmail(key) {
-  try {
-    return await apiRequest("/auth/registration/verify-email/", "POST", { key });
-  } catch (err) {
-    return { message: "Email verified successfully" };
-  }
+  return apiRequest("/auth/registration/verify-email/", "POST", { key });
+}
+
+export async function resendVerificationEmail(email) {
+  return apiRequest("/auth/registration/resend-email/", "POST", { email });
+}
+
+export async function changePassword(passwords, token) {
+  return apiRequest("/auth/password/change/", "POST", passwords, token);
+}
+
+export async function requestPasswordReset(email) {
+  return apiRequest("/auth/password/reset/", "POST", { email });
+}
+
+export async function confirmPasswordReset(passwordData) {
+  return apiRequest("/auth/password/reset/confirm/", "POST", passwordData);
+}
+
+export async function fetchCurrentUser(token) {
+  return apiRequest("/auth/user/", "GET", null, token);
+}
+
+export async function updateCurrentUser(userData, token, method = "PATCH") {
+  return apiRequest("/auth/user/", method, userData, token);
 }
 
 export async function signOutUser() {
-  const { error } = await supabase.auth.signOut();
-  if (error) console.warn("Supabase signout warning:", error.message);
-  localStorage.removeItem("authToken");
+  return apiRequest("/auth/logout/", "POST", null, localStorage.getItem("accessToken"));
+}
+
+export async function logoutUser(method = "POST", token = localStorage.getItem("accessToken")) {
+  return apiRequest("/auth/logout/", method, null, token);
 }
 
 /* ------------------- LISTINGS FUNCTIONS ------------------- */
 
-export async function fetchListings() {
-  // 1. Try Supabase first
-  try {
-    const { data, error } = await supabase
-      .from("listings")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (!error && Array.isArray(data) && data.length > 0) {
-      return data.map(item => normalizeListing(item));
-    }
-  } catch (err) {
-    console.warn("Supabase fetch failed, checking Django API:", err);
-  }
-
-  // 2. Try Django API endpoint
-  try {
-    const res = await fetch(`${API_BASE}/listings/`);
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        return data.map(item => normalizeListing(item));
-      }
-    }
-  } catch (err) {
-    console.warn("API fetch failed, utilizing mock listings:", err);
-  }
-
-  // 3. Fallback to rich mock listings
-  return mockListings.map(item => normalizeListing(item));
+export async function fetchListings(filters = {}) {
+  const data = await apiRequest("/listings/", "GET", null, null, { query: filters });
+  if (!Array.isArray(data)) throw new Error("The listings response was not an array.");
+  return data.map(item => normalizeListing(item));
 }
 
 export async function fetchListingById(id) {
-  // 1. Try Supabase
-  try {
-    const { data, error } = await supabase
-      .from("listings")
-      .select("*")
-      .or(`id.eq.${id}`)
-      .single();
-
-    if (!error && data) {
-      return normalizeListing(data);
-    }
-  } catch (e) {
-    // Continue fallback
-  }
-
-  // 2. Try Django REST API
-  try {
-    const res = await fetch(`${API_BASE}/listings/${id}/`);
-    if (res.ok) {
-      const data = await res.json();
-      return normalizeListing(data);
-    }
-  } catch (e) {
-    // Continue fallback
-  }
-
-  // 3. Fallback to mock listings
-  const found = mockListings.find(item => String(item.id) === String(id));
-  if (found) return normalizeListing(found);
-
-  throw new Error("Lodge listing not found.");
+  const data = await apiRequest(`/listings/${encodeURIComponent(id)}/`);
+  return normalizeListing(data);
 }
 
 export async function searchListings({ location = '', minPrice = 0, maxPrice = Infinity }) {
-  const allListings = await fetchListings();
+  const filters = {};
+  if (location) filters.search = location;
+  if (minPrice) filters.first_price = minPrice;
+  const allListings = await fetchListings(filters);
 
   return allListings.filter(item => {
     const matchesLocation = !location ||
@@ -226,69 +144,77 @@ export async function searchListings({ location = '', minPrice = 0, maxPrice = I
   });
 }
 
-export async function createListing(listingData, imageFile = null) {
-  let imageUrl = "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=600&q=75";
-
-  // Upload image to Supabase if file is provided
-  if (imageFile) {
-    try {
-      const fileExt = imageFile.name.split(".").pop();
-      const fileName = `lodge_${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("listings")
-        .upload(fileName, imageFile);
-
-      if (!uploadError) {
-        const { data: urlData } = supabase.storage
-          .from("listings")
-          .getPublicUrl(fileName);
-
-        if (urlData?.publicUrl) {
-          imageUrl = urlData.publicUrl;
-        }
-      }
-    } catch (err) {
-      console.warn("Image upload failed, utilizing fallback default image:", err);
-    }
-  }
-
-  const newRecord = {
-    title: listingData.title,
+export async function createListing(listingData, imageFile = null, token = null) {
+  const formData = new FormData();
+  const fields = {
     lodge_name: listingData.title,
-    location: listingData.location,
-    price: Number(listingData.first_price || listingData.price || 0),
-    first_price: String(listingData.first_price || listingData.price || 0),
-    year_price: String(listingData.year_price || listingData.price || 0),
-    rooms: listingData.rooms,
-    amenities: Array.isArray(listingData.amenities)
-      ? listingData.amenities
-      : (listingData.amenities || '').split(',').map(a => a.trim()).filter(Boolean),
     description: listingData.description,
+    first_price: listingData.first_price,
+    year_price: listingData.year_price,
+    location: listingData.location,
+    room_type: listingData.room_type || toRoomType(listingData.rooms),
+    total_rooms: listingData.total_rooms || 1,
     rules: listingData.rules,
-    agent_name: listingData.agent_name || "BookIt Agent",
-    agent_email: listingData.agent_email || "agent@bookit.com",
-    agent_phone: listingData.agent_phone || "08000000000",
-    image: imageUrl,
-    cover_image_url: imageUrl,
+    contact_email: listingData.agent_email,
+    contact_phone: listingData.agent_phone,
     is_available: true
   };
 
-  // Try insert into Supabase
-  try {
-    const { data, error } = await supabase
-      .from("listings")
-      .insert([newRecord])
-      .select();
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') formData.append(key, String(value));
+  });
 
-    if (!error && data && data[0]) {
-      return normalizeListing(data[0]);
-    }
-  } catch (err) {
-    console.warn("Supabase insert error:", err);
-  }
+  const amenities = Array.isArray(listingData.amenities)
+    ? listingData.amenities
+    : String(listingData.amenities || '').split(',').map(item => item.trim()).filter(Boolean);
+  if (amenities.length > 0) formData.append('amenity_names', JSON.stringify(amenities));
+  if (imageFile) formData.append('uploaded_images', imageFile, imageFile.name);
 
-  return normalizeListing({ ...newRecord, id: Date.now() });
+  return normalizeListing(await apiRequest('/listings/', 'POST', formData, token));
+}
+
+export async function updateListing(id, listingData, token = null) {
+  const formData = new FormData();
+  const fields = {
+    lodge_name: listingData.title || listingData.lodge_name,
+    description: listingData.description,
+    first_price: listingData.first_price,
+    year_price: listingData.year_price,
+    location: listingData.location,
+    room_type: listingData.room_type || toRoomType(listingData.rooms),
+    total_rooms: listingData.total_rooms || listingData.rooms_count,
+    room_number: listingData.room_number,
+    agency: listingData.agency,
+    is_available: listingData.is_available,
+    rules: listingData.rules,
+    contact_phone: listingData.contact_phone || listingData.agent_phone,
+    contact_email: listingData.contact_email || listingData.agent_email
+  };
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') formData.append(key, String(value));
+  });
+  const amenities = Array.isArray(listingData.amenities)
+    ? listingData.amenities.map(item => typeof item === 'string' ? item : item.name)
+    : String(listingData.amenities || '').split(',').map(item => item.trim()).filter(Boolean);
+  if (amenities.length) formData.append('amenity_names', JSON.stringify(amenities));
+  (listingData.uploadedImages || []).forEach(file => formData.append('uploaded_images', file, file.name));
+  if (listingData.video) formData.append('video', listingData.video);
+  return normalizeListing(await apiRequest(`/listings/${encodeURIComponent(id)}/`, 'PATCH', formData, token));
+}
+
+export async function deleteListing(id, token = null) {
+  return apiRequest(`/listings/${encodeURIComponent(id)}/`, 'DELETE', null, token);
+}
+
+function toRoomType(value) {
+  const normalized = String(value || '').toLowerCase();
+  if (normalized.includes('self')) return 'SELF_CONTAINED';
+  if (normalized.includes('one')) return 'ONE_BEDROOM';
+  if (normalized.includes('two')) return 'TWO_BEDROOM';
+  if (normalized.includes('studio')) return 'STUDIO';
+  if (normalized.includes('shared')) return 'SHARED_ROOM';
+  if (normalized.includes('single')) return 'SINGLE_ROOM';
+  return 'OTHER';
 }
 
 export async function submitAgentRequest(formData) {
@@ -336,17 +262,39 @@ function normalizeListing(item) {
     location: item.location_display || item.location || "Awka, Anambra State",
     price: price,
     first_price: item.first_price || String(price * 1.2),
-    year_price: item.year_price || String(price),
+    year_price: item.year_price || item.price || String(price),
     displayPrice: price,
     cover_image_url: imageUrl,
     images: images,
     description: item.description || "Spacious student lodge in a calm and accessible neighborhood.",
-    rooms: item.rooms || "Self-contained",
+    rooms: item.rooms || item.room_type || "Self-contained",
+    room_type: item.room_type,
+    total_rooms: item.total_rooms,
+    room_number: item.room_number,
     amenities: amenitiesList,
     rules: item.rules || "No loud music after 10 PM. Maintain cleanliness.",
-    agent_name: item.agent_name || "Daniel Dominic",
-    agent_phone: item.agent_phone || "+2349134850138",
-    agent_email: item.agent_email || "agent@bookit.com",
+    agent_name: item.agent_name || item.agent_detail?.full_name || item.agent_detail?.username || "BookIt Agent",
+    agent_phone: item.agent_phone || item.contact_phone || item.agent_detail?.phone_number || "+2349134850138",
+    agent_email: item.agent_email || item.contact_email || item.agent_detail?.email || "agent@bookit.com",
+    agent: item.agent,
+    agency: item.agency,
     is_available: item.is_available !== false
   };
+}
+
+function getApiErrorMessage(data) {
+  if (!data) return "";
+  if (typeof data === "string") return data;
+  if (Array.isArray(data)) return data.map(getApiErrorMessage).filter(Boolean).join(", ");
+
+  const directMessage = data.detail || data.message || data.error;
+  if (directMessage) return getApiErrorMessage(directMessage);
+
+  return Object.entries(data)
+    .map(([field, value]) => {
+      const message = getApiErrorMessage(value);
+      return message ? `${field}: ${message}` : "";
+    })
+    .filter(Boolean)
+    .join("; ");
 }

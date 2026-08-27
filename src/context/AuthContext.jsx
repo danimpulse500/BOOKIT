@@ -3,9 +3,12 @@ import {
   loginUser as apiLogin,
   registerUser as apiRegister,
   loginWithGoogleBackend,
-  sendPhoneOTP,
-  verifyPhoneOTP,
-  signOutUser
+  signOutUser,
+  changePassword as apiChangePassword,
+  requestPasswordReset as apiRequestPasswordReset,
+  resendVerificationEmail as apiResendVerificationEmail,
+  fetchCurrentUser,
+  updateCurrentUser
 } from '../services/api';
 
 const AuthContext = createContext();
@@ -35,7 +38,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Helper function to persist session consistently
-  const saveSession = (userData, authToken) => {
+  const saveSession = (userData, authToken, refreshToken = null) => {
     setUser(userData);
     setToken(authToken);
 
@@ -46,6 +49,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('userRole', userData.role || 'Lodger');
       localStorage.setItem('userData', JSON.stringify(userData));
       localStorage.setItem('accessToken', authToken);
+      if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
     } catch (err) {
       console.error('Failed to save session to localStorage:', err);
     }
@@ -69,8 +73,9 @@ export const AuthProvider = ({ children }) => {
       is_agent: isAgent
     };
 
-    const authToken = res.key || res.access_token || res.token || ('token_' + Date.now());
-    saveSession(userData, authToken);
+    const authToken = res.access || res.access_token || res.key || res.token;
+    if (!authToken) throw new Error('Login response did not include an access token.');
+    saveSession(userData, authToken, res.refresh);
     return userData;
   };
 
@@ -89,40 +94,13 @@ export const AuthProvider = ({ children }) => {
       is_agent: isAgent
     };
 
-    const authToken = res.key || res.access_token || res.session?.access_token || ('google_token_' + Date.now());
-    saveSession(userData, authToken);
+    const authToken = res.access || res.access_token || res.key || res.session?.access_token;
+    if (!authToken) throw new Error('Social login response did not include an access token.');
+    saveSession(userData, authToken, res.refresh);
     return userData;
   };
 
-  // 3. Phone OTP Handlers
-  const requestPhoneOTP = async (phoneNumber) => {
-    return await sendPhoneOTP(phoneNumber);
-  };
-
-  const confirmPhoneOTP = async (phoneNumber, otpToken) => {
-    const res = await verifyPhoneOTP(phoneNumber, otpToken);
-    if (!res) throw new Error('Phone verification failed.');
-
-    const isAgent = Boolean(res.user?.is_agent);
-    const userRole = isAgent ? 'Agent' : 'Lodger';
-
-    const rawEmail = res.user?.email || `${phoneNumber.replace(/[^0-9]/g, '')}@bookit.com`;
-    const rawName = res.user?.user_metadata?.full_name || res.user?.full_name || `User (${phoneNumber.slice(-4)})`;
-
-    const userData = {
-      phone: phoneNumber,
-      email: rawEmail,
-      name: rawName,
-      role: userRole,
-      is_agent: isAgent
-    };
-
-    const authToken = res.session?.access_token || res.key || res.access_token || ('phone_token_' + Date.now());
-    saveSession(userData, authToken);
-    return userData;
-  };
-
-  // 4. Registration
+  // 3. Registration
   const register = async (userData) => {
     const res = await apiRegister(userData);
     if (!res) throw new Error('Registration failed.');
@@ -138,12 +116,12 @@ export const AuthProvider = ({ children }) => {
       is_agent: isAgent
     };
 
-    const authToken = res.key || res.access_token || ('token_' + Date.now());
-    saveSession(newUser, authToken);
+    const authToken = res.access || res.access_token || res.key;
+    if (authToken) saveSession(newUser, authToken, res.refresh);
     return newUser;
   };
 
-  // 5. Logout
+  // 4. Logout
   const logout = async () => {
     try {
       await signOutUser();
@@ -156,6 +134,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const changePassword = (passwords) => apiChangePassword(passwords, token);
+  const requestPasswordReset = (email) => apiRequestPasswordReset(email);
+  const resendVerificationEmail = (email) => apiResendVerificationEmail(email);
+  const getCurrentUser = () => fetchCurrentUser(token);
+  const updateProfile = (userData, method = 'PATCH') => updateCurrentUser(userData, token, method);
+
   return (
     <AuthContext.Provider
       value={{
@@ -166,10 +150,13 @@ export const AuthProvider = ({ children }) => {
         isAgent: Boolean(user?.is_agent || user?.role?.toLowerCase() === 'agent'),
         login,
         loginWithGoogle,
-        requestPhoneOTP,
-        confirmPhoneOTP,
         register,
-        logout
+        logout,
+        changePassword,
+        requestPasswordReset,
+        resendVerificationEmail,
+        getCurrentUser,
+        updateProfile
       }}
     >
       {children}

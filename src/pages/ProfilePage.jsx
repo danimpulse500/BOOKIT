@@ -7,12 +7,15 @@ import { User, ShieldCheck, Heart, LogOut, Mail, Phone, Crown, Building, Inbox, 
 import { Link } from 'react-router-dom';
 
 export default function ProfilePage() {
-  const { user, isAgent, logout } = useAuth();
+  const { user, isAgent, logout, changePassword, updateProfile } = useAuth();
   const { savedIds } = useSaved();
 
   const [savedLodges, setSavedLodges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('SAVED');
+  const [profileForm, setProfileForm] = useState({ full_name: user?.name || '', phone_number: user?.phone || '' });
+  const [passwordForm, setPasswordForm] = useState({ old_password: '', new_password1: '', new_password2: '' });
+  const [accountMessage, setAccountMessage] = useState(null);
 
   useEffect(() => {
     loadSavedLodges();
@@ -28,6 +31,27 @@ export default function ProfilePage() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleProfileUpdate = async (event) => {
+    event.preventDefault();
+    try {
+      await updateProfile(profileForm);
+      setAccountMessage('Profile updated successfully.');
+    } catch (err) {
+      setAccountMessage(err.message || 'Unable to update profile.');
+    }
+  };
+
+  const handlePasswordChange = async (event) => {
+    event.preventDefault();
+    try {
+      await changePassword(passwordForm);
+      setPasswordForm({ old_password: '', new_password1: '', new_password2: '' });
+      setAccountMessage('Password changed successfully.');
+    } catch (err) {
+      setAccountMessage(err.message || 'Unable to change password.');
     }
   };
 
@@ -69,6 +93,21 @@ export default function ProfilePage() {
           <span>Logout</span>
         </button>
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <form onSubmit={handleProfileUpdate} className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-3">
+          <h2 className="text-lg font-bold text-slate-800">Account details</h2>
+          <input required value={profileForm.full_name} onChange={e => setProfileForm({ ...profileForm, full_name: e.target.value })} placeholder="Full name" className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm" />
+          <input required value={profileForm.phone_number} onChange={e => setProfileForm({ ...profileForm, phone_number: e.target.value })} placeholder="Phone number" className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm" />
+          <button className="px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl">Save profile</button>
+        </form>
+        <form onSubmit={handlePasswordChange} className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-3">
+          <h2 className="text-lg font-bold text-slate-800">Change password</h2>
+          {Object.entries(passwordForm).map(([key, value]) => <input key={key} required type="password" value={value} onChange={e => setPasswordForm({ ...passwordForm, [key]: e.target.value })} placeholder={key.replaceAll('_', ' ')} className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm" />)}
+          <button className="px-4 py-2 bg-slate-900 text-white text-sm font-bold rounded-xl">Change password</button>
+        </form>
+      </div>
+      {accountMessage && <p role="status" className="text-sm text-indigo-700">{accountMessage}</p>}
 
       {/* TABBED NAVIGATION */}
       <div className="flex items-center border-b border-slate-200 gap-6 text-sm font-bold">

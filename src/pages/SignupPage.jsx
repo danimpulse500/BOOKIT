@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { UserPlus, Eye, EyeOff, Loader2, Crown, User, AlertCircle } from 'lucide-react';
 
 export default function SignupPage() {
-  const { register } = useAuth();
+  const { register, resendVerificationEmail } = useAuth();
   const navigate = useNavigate();
 
   const [role, setRole] = useState('Lodger'); // Lodger | Agent
@@ -16,6 +16,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [registered, setRegistered] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,11 +38,20 @@ export default function SignupPage() {
         phone_number: phoneNumber,
         is_agent: role === 'Agent'
       });
-      navigate('/');
+      setRegistered(true);
     } catch (err) {
       setError(err.message || 'Registration failed. Please check details.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleResend = async () => {
+    try {
+      await resendVerificationEmail(email.trim());
+      setError('A new verification email has been sent.');
+    } catch (err) {
+      setError(err.message || 'Unable to resend verification email.');
     }
   };
 
@@ -82,7 +92,13 @@ export default function SignupPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {registered ? (
+          <div className="space-y-4 text-center">
+            <p className="text-sm text-slate-600">Account created. Check your email to verify your account before logging in.</p>
+            <button type="button" onClick={handleResend} className="w-full py-3 bg-indigo-600 text-white font-bold rounded-2xl">Resend verification email</button>
+            <Link to="/login" className="block text-sm font-bold text-indigo-600">Go to login</Link>
+          </div>
+        ) : <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Full Name</label>
             <input 
@@ -171,7 +187,7 @@ export default function SignupPage() {
               </>
             )}
           </button>
-        </form>
+        </form>}
 
         <div className="text-center pt-2 border-t border-slate-100 text-xs text-slate-500">
           Already registered?{' '}

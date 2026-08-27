@@ -6,7 +6,7 @@ import { LOCATIONS } from '../services/mockData';
 import { PlusCircle, Upload, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function PostLodgePage() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -29,10 +29,21 @@ export default function PostLodgePage() {
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file.');
+      return;
     }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('The image must be smaller than 5MB.');
+      return;
+    }
+
+    setError(null);
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = async (e) => {
@@ -44,12 +55,12 @@ export default function PostLodgePage() {
       await createListing({
         ...formData,
         agent_email: user?.email
-      }, imageFile);
+      }, imageFile, token);
 
       alert("Lodge listing posted successfully!");
       navigate('/');
     } catch (err) {
-      setError("Failed to post listing. Please try again.");
+      setError(err.message || "Failed to post listing. Please try again.");
     } finally {
       setSubmitting(false);
     }

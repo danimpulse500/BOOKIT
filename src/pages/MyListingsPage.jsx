@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { fetchListings } from '../services/api';
+import { deleteListing, fetchListings } from '../services/api';
 import ListingCard from '../components/ListingCard';
 import { Link } from 'react-router-dom';
 import { Building, PlusCircle, Loader2, Inbox } from 'lucide-react';
 
 export default function MyListingsPage() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [agentListings, setAgentListings] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,6 +27,16 @@ export default function MyListingsPage() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this listing?')) return;
+    try {
+      await deleteListing(id, token);
+      setAgentListings(listings => listings.filter(listing => listing.id !== id));
+    } catch (err) {
+      window.alert(err.message || 'Unable to delete listing.');
     }
   };
 
@@ -57,7 +67,10 @@ export default function MyListingsPage() {
       ) : agentListings.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {agentListings.map(listing => (
-            <ListingCard key={listing.id} listing={listing} />
+            <div key={listing.id} className="space-y-2">
+              <ListingCard listing={listing} />
+              <button type="button" onClick={() => handleDelete(listing.id)} className="w-full py-2 text-xs font-bold text-rose-600 border border-rose-200 rounded-xl hover:bg-rose-50">Delete listing</button>
+            </div>
           ))}
         </div>
       ) : (
