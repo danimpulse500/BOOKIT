@@ -80,8 +80,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   // 2. Google OAuth Login
-  const loginWithGoogle = async (googleToken) => {
-    const res = await loginWithGoogleBackend(googleToken);
+  const loginWithGoogle = async (accessToken) => {
+    const res = await loginWithGoogleBackend(accessToken);
     if (!res) throw new Error('Google login failed.');
 
     const isAgent = Boolean(res.user?.is_agent || res.is_agent);

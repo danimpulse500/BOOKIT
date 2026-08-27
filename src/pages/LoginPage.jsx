@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { GoogleLogin } from '@react-oauth/google';
+import { useGoogleLogin } from '@react-oauth/google';
 import { LogIn, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
@@ -52,14 +52,13 @@ export default function LoginPage() {
     }
   };
 
-  // Google OAuth Login
-  const handleGoogleSuccess = async (credentialResponse) => {
-    if (!credentialResponse.credential) return;
+  const handleGoogleSuccess = async (tokenResponse) => {
+    if (!tokenResponse.access_token) return;
     setSubmitting(true);
     setError(null);
 
     try {
-      await loginWithGoogle(credentialResponse.credential);
+      await loginWithGoogle(tokenResponse.access_token);
       navigate('/');
     } catch (err) {
       setError(err.message || 'Google sign-in failed');
@@ -67,6 +66,12 @@ export default function LoginPage() {
       setSubmitting(false);
     }
   };
+
+  const startGoogleLogin = useGoogleLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: () => setError('Google Authentication Failed'),
+    scope: 'openid email profile'
+  });
 
   return (
     <div className="min-h-[75vh] flex items-center justify-center px-4 py-12 animate-fade-in">
@@ -89,14 +94,14 @@ export default function LoginPage() {
 
         {/* GOOGLE LOGIN BUTTON */}
         <div className={`flex justify-center w-full ${submitting ? 'pointer-events-none opacity-60' : ''}`}>
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => setError('Google Authentication Failed')}
-            shape="pill"
-            theme="outline"
-            size="large"
-            width="100%"
-          />
+          <button
+            type="button"
+            onClick={() => startGoogleLogin()}
+            disabled={submitting}
+            className="w-full py-3.5 border border-slate-300 hover:bg-slate-50 disabled:opacity-60 text-slate-700 font-bold rounded-2xl transition-colors"
+          >
+            Continue with Google
+          </button>
         </div>
 
         {/* Divider */}

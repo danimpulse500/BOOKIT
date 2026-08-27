@@ -42,10 +42,10 @@ async function apiRequest(endpoint, method = "GET", body = null, token = null, o
 /* ------------------- AUTH FUNCTIONS ------------------- */
 
 /**
- * Sends Google ID token to backend or falls back to mock login
+ * Sends the Google OAuth access token to the backend.
  */
-export async function loginWithGoogleBackend(googleToken) {
-  return apiRequest("/auth/google/", "POST", { id_token: googleToken });
+export async function loginWithGoogleBackend(accessToken) {
+  return apiRequest("/auth/google/", "POST", { access_token: accessToken });
 }
 
 export async function socialLogin(provider, credentials) {
