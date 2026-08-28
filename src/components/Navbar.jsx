@@ -32,35 +32,47 @@ export default function Navbar() {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-sm transition-all duration-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div className="flex justify-center mt-8 sticky top-5 z-40">
+      <header className="w-[calc(100%-5rem)] bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-sm transition-all duration-200 rounded-[500px]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
 
         {/* Brand Logo & Name */}
         <Link to="/" className="flex items-center gap-2.5 group focus:outline-none">
           <img
-            src="/logo.png"
+            src="./bookit-logo.png"
             alt="BookIt Logo"
             className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
           />
-          <span className="text-2xl font-extrabold tracking-tight text-indigo-600 group-hover:text-indigo-700 transition-colors">
-            BookIt
-          </span>
         </Link>
 
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-6">
           <Link
             to="/"
-            className={`text-sm font-medium transition-colors ${isActive('/') ? 'text-indigo-600 font-semibold' : 'text-slate-600 hover:text-indigo-600'}`}
+            className={`text-sm font-medium transition-colors ${isActive('/') ? 'text-gray-800 font-semibold' : 'text-gray-800 hover:text-gray-800'}`}
           >
             Home
           </Link>
 
           <Link
             to="/contact"
-            className={`text-sm font-medium transition-colors ${isActive('/contact') ? 'text-indigo-600 font-semibold' : 'text-slate-600 hover:text-indigo-600'}`}
+            className={`text-sm font-medium transition-colors ${isActive('/contact') ? 'text-gray-800 font-semibold' : 'text-gray-800 hover:text-gray-800'}`}
           >
-            Contact / Support
+            Listing
+          </Link>
+
+          <Link
+            to="/contact"
+            className={`text-sm font-medium transition-colors ${isActive('/contact') ? 'text-gray-800 font-semibold' : 'text-gray-800 hover:text-gray-800'}`}
+          >
+            Contact
+          </Link>
+
+          <Link
+            to="/contact"
+            className={`text-sm font-medium transition-colors ${isActive('/contact') ? 'text-gray-800 font-semibold' : 'text-gray-800 hover:text-gray-800'}`}
+          >
+            Become a vendor
           </Link>
 
           {isAgent && (
@@ -110,7 +122,7 @@ export default function Navbar() {
                       <Link
                         to="/post"
                         onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600"
+                        className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-gray-800"
                       >
                         <PlusCircle className="w-4 h-4 text-indigo-500" />
                         <span>Post New Lodge</span>
@@ -118,7 +130,7 @@ export default function Navbar() {
                       <Link
                         to="/my-listings"
                         onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600"
+                        className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-gray-800"
                       >
                         <Building className="w-4 h-4 text-indigo-500" />
                         <span>My Listings</span>
@@ -129,7 +141,7 @@ export default function Navbar() {
                   <Link
                     to="/profile"
                     onClick={() => setUserDropdownOpen(false)}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600"
+                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-gray-800"
                   >
                     <User className="w-4 h-4 text-indigo-500" />
                     <span>Profile & Saved</span>
@@ -151,15 +163,9 @@ export default function Navbar() {
             <div className="flex items-center gap-3">
               <Link
                 to="/login"
-                className="text-sm font-medium text-slate-700 hover:text-indigo-600 px-3 py-1.5 transition-colors"
+                className="text-sm font-semibold text-white bg-[#222761] hover:bg-indigo-700 px-4 py-2 rounded-full shadow-md shadow-indigo-200 transition-all hover:shadow-indigo-300 active:scale-95"
               >
                 Login
-              </Link>
-              <Link
-                to="/signup"
-                className="text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-full shadow-md shadow-indigo-200 transition-all hover:shadow-indigo-300 active:scale-95"
-              >
-                Sign Up
               </Link>
             </div>
           )}
@@ -168,7 +174,7 @@ export default function Navbar() {
         {/* Mobile Menu Button */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus:outline-none"
+          className="md:hidden p-2 rounded-lg text-gray-800 hover:text-slate-900 hover:bg-slate-100 focus:outline-none"
         >
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
@@ -196,7 +202,7 @@ export default function Navbar() {
           <Link
             to="/"
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 font-medium"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-indigo-50 hover:text-gray-800 font-medium"
           >
             <Home className="w-5 h-5 text-indigo-500" />
             <span>Home</span>
@@ -205,7 +211,7 @@ export default function Navbar() {
           <Link
             to="/contact"
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 font-medium"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-indigo-50 hover:text-gray-800 font-medium"
           >
             <HelpCircle className="w-5 h-5 text-indigo-500" />
             <span>Contact / Support</span>
@@ -220,13 +226,13 @@ export default function Navbar() {
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-3 px-3 py-2 rounded-lg text-indigo-700 bg-indigo-50 font-semibold"
                   >
-                    <PlusCircle className="w-5 h-5 text-indigo-600" />
+                    <PlusCircle className="w-5 h-5 text-gray-800" />
                     <span>Post Lodge</span>
                   </Link>
                   <Link
                     to="/my-listings"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 font-medium"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-indigo-50 hover:text-gray-800 font-medium"
                   >
                     <Building className="w-5 h-5 text-indigo-500" />
                     <span>My Listings</span>
@@ -237,7 +243,7 @@ export default function Navbar() {
               <Link
                 to="/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 font-medium"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-indigo-50 hover:text-gray-800 font-medium"
               >
                 <User className="w-5 h-5 text-indigo-500" />
                 <span>Profile</span>
@@ -271,6 +277,7 @@ export default function Navbar() {
           )}
         </div>
       )}
-    </header>
+      </header>
+    </div>
   );
 }

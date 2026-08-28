@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import SearchBox from '../components/SearchBox';
 import ListingCard from '../components/ListingCard';
 import { fetchListings, searchListings } from '../services/api';
-import { Building2, Inbox, Loader2, Sparkles, ShieldCheck, MapPin } from 'lucide-react';
+import { Building2, Inbox, Loader2, Sparkles, ShieldCheck, MapPin, MoveHorizontal, ChevronDown } from 'lucide-react';
+import { LOCATIONS } from '../services/mockData';
 
 export default function HomePage() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState('ALL');
+  const [location, setLocation] = useState('');
+  const [proximity, setProximity] = useState('5 mins walk');
 
   useEffect(() => {
     loadListings();
@@ -49,29 +52,27 @@ export default function HomePage() {
     <div className="space-y-8 sm:space-y-12">
 
       {/* HERO SECTION */}
-      <section className="relative overflow-hidden hero-gradient text-white pt-16 pb-24 px-4 sm:px-6 lg:px-8 rounded-b-[2.5rem] shadow-2xl">
-        <div className=""></div>
+      <div className="flex justify-center -mt-20">
+        <section className="relative min-h-[460px] sm:min-h-[520px] flex flex-col justify-center overflow-hidden bg-[url('/bookit-hero-image.png')] bg-cover bg-center text-white px-4 sm:px-6 lg:px-8 rounded-[2.5rem] w-[calc(100%-2.5rem)]">
+        <div className="absolute inset-0 bg-slate-950/45"></div>
 
         <div className="relative max-w-4xl mx-auto text-center space-y-6 animate-fade-in">
 
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-indigo-200">
-            <span>Over 500+ Verified Student Hostels</span>
-          </div>
-
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-            Find Student-Friendly <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400">Hostels & Lodges</span>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white leading-tight">
+            Find Student-Friendly Hostels & Lodges
           </h1>
 
           <p className="text-slate-300 text-sm sm:text-base max-w-xl mx-auto font-normal">
             Search by location and budget near Unizik, Ifite, Amansea, Aroma, and Permanent Site.
           </p>
 
-          {/* SEARCH BOX COMPONENT */}
           <div className="pt-4">
             <SearchBox onSearch={handleSearch} />
           </div>
+
         </div>
       </section>
+      </div>
 
       {/* QUICK CATEGORY FILTERS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -81,33 +82,53 @@ export default function HomePage() {
             <p className="text-xs text-slate-500 mt-0.5">Explore affordable student accommodation</p>
           </div>
 
-          {/* Filter Pills (Scrollable on mobile, flex on desktop) */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 bg-slate-100 p-1 rounded-full border border-slate-200 text-xs font-semibold text-slate-600 no-scrollbar">
-            <button
-              onClick={() => setFilterType('ALL')}
-              className={`px-3.5 py-1.5 rounded-full whitespace-nowrap transition-all ${filterType === 'ALL' ? 'bg-white text-indigo-600 shadow-sm font-bold' : 'hover:text-slate-900'}`}
-            >
-              All ({listings.length})
-            </button>
-            <button
-              onClick={() => setFilterType('SELF_CONTAINED')}
-              className={`px-3.5 py-1.5 rounded-full whitespace-nowrap transition-all ${filterType === 'SELF_CONTAINED' ? 'bg-white text-indigo-600 shadow-sm font-bold' : 'hover:text-slate-900'}`}
-            >
-              Self Contained
-            </button>
-            <button
-              onClick={() => setFilterType('SINGLE_ROOM')}
-              className={`px-3.5 py-1.5 rounded-full whitespace-nowrap transition-all ${filterType === 'SINGLE_ROOM' ? 'bg-white text-indigo-600 shadow-sm font-bold' : 'hover:text-slate-900'}`}
-            >
-              Single Rooms
-            </button>
-            <button
-              onClick={() => setFilterType('UNDER_150K')}
-              className={`px-3.5 py-1.5 rounded-full whitespace-nowrap transition-all ${filterType === 'UNDER_150K' ? 'bg-white text-indigo-600 shadow-sm font-bold' : 'hover:text-slate-900'}`}
-            >
-              Under ₦150k
-            </button>
+          <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+            <label className="flex items-center gap-3 bg-white px-4 py-2 rounded-full border border-slate-200">
+              <MoveHorizontal className="w-5 h-5 text-slate-500" />
+              <span className="text-xs text-slate-400 whitespace-nowrap">Proximity to Campus</span>
+              <span className="h-8 border-l border-slate-200"></span>
+              <span className="relative flex items-center">
+                <select
+                  value={proximity}
+                  onChange={event => setProximity(event.target.value)}
+                  className="appearance-none bg-transparent pr-6 text-sm font-semibold text-slate-700 outline-none cursor-pointer"
+                  aria-label="Proximity to Campus"
+                >
+                  <option>5 mins walk</option>
+                  <option>10 mins walk</option>
+                  <option>15 mins walk</option>
+                  <option>20 mins walk</option>
+                </select>
+                <ChevronDown className="absolute right-0 w-4 h-4 text-slate-700 pointer-events-none" />
+              </span>
+            </label>
+
+            <label className="flex items-center gap-3 bg-white px-4 py-2 rounded-full border border-slate-200">
+              <MapPin className="w-5 h-5 text-slate-500" />
+              <span className="text-xs text-slate-400 whitespace-nowrap">Location</span>
+              <span className="h-8 border-l border-slate-200"></span>
+              <span className="relative flex items-center">
+                <select
+                  value={location}
+                  onChange={event => {
+                    const selectedLocation = event.target.value;
+                    setLocation(selectedLocation);
+                    handleSearch({ location: selectedLocation, minPrice: 0, maxPrice: Infinity });
+                  }}
+                  className="appearance-none bg-transparent pr-6 text-sm font-semibold text-slate-700 outline-none cursor-pointer"
+                  aria-label="Location"
+                >
+                  {LOCATIONS.map(option => (
+                    <option key={option.id} value={option.id}>
+                      {option.id === '' ? 'All Locations' : option.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-0 w-4 h-4 text-slate-700 pointer-events-none" />
+              </span>
+            </label>
           </div>
+
         </div>
 
         {/* LISTINGS GRID & STATES */}
