@@ -10,7 +10,7 @@
   }
 
   body {
-    background-color: #f8fafc;
+    background-color: #ffffff;
     color: #1e293b;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -38,6 +38,14 @@
 
   .brand-gradient {
     background: linear-gradient(135deg, #0a7cff 0%, #6366f1 50%, #764ba2 100%);
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 

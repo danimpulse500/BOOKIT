@@ -1,91 +1,83 @@
 import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
-import { useSaved } from '../context/SavedContext';
-import AmenitiesList from './AmenitiesList';
-import { MapPin, Heart, Home } from 'lucide-react';
+import { MapPin, Home, Calendar, RefreshCw } from 'lucide-react';
 
-// Fallback high-res Unsplash image scaled down to thumbnail dimensions
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=600&q=75';
 
-function ListingCard({ listing }) {
-  const { isSaved, toggleSave } = useSaved();
-  const saved = isSaved(listing.id);
-
-  const handleHeartClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleSave(listing.id);
-  };
-
-  const formattedPrice = `₦${Number(listing.displayPrice || listing.price || 0).toLocaleString()}`;
+function ListingCard({ listing = {} }) {
+  // Hardcoded values based on image with dynamic fallbacks
+  const title = listing.title || "Staircase at Ifite Up School";
+  const location = listing.location || "El-Shaddai Royal Suite";
+  const propertyType = listing.rooms || "Self-Contained";
+  const entryRent = listing.price ? `₦${Number(listing.price).toLocaleString()}` : "₦350,000";
+  const renewalRent = listing.renewalPrice ? `₦${Number(listing.renewalPrice).toLocaleString()}` : "₦280,000";
 
   return (
-    <Link
-      to={`/details/${listing.id}`}
-      className="group bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col hover:-translate-y-1 block cursor-pointer"
-    >
-      {/* Image Container */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+    <div className="relative w-full max-w-sm rounded-xl sm:rounded-[32px] overflow-hidden bg-slate-100 shadow-sm hover:shadow-md transition-shadow">
+      {/* Background Image Container */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden">
         <img
           src={listing.cover_image_url || DEFAULT_IMAGE}
-          alt={listing.title || 'Lodge Image'}
+          alt={title}
           loading="lazy"
-          decoding="async"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover object-top"
           onError={(e) => {
-            e.target.onerror = null; // Prevents infinite loops if fallback fails
+            e.target.onerror = null;
             e.target.src = DEFAULT_IMAGE;
           }}
         />
 
-        {/* Top Badges Overlay */}
-        <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
-          <span className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-slate-800 shadow-sm">
-            <Home className="w-3.5 h-3.5 text-indigo-600" />
-            {listing.rooms || 'Hostel'}
-          </span>
-
-          <button
-            type="button"
-            onClick={handleHeartClick}
-            className="pointer-events-auto p-2.5 rounded-full bg-white/90 backdrop-blur-md hover:bg-white text-slate-400 hover:text-rose-500 shadow-sm transition-all active:scale-90"
-            title={saved ? "Remove from saved" : "Save lodge"}
-          >
-            <Heart className={`w-4 h-4 transition-colors ${saved ? 'fill-rose-500 text-rose-500' : ''}`} />
-          </button>
-        </div>
-
-        {/* Price Tag Overlay */}
-        <div className="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur-md text-white px-3.5 py-1.5 rounded-xl font-bold text-sm shadow-md">
-          {formattedPrice} <span className="text-[10px] font-normal text-slate-300">/ yr</span>
-        </div>
+        {/* Top Right "View" Button Overlay */}
+        <Link
+          to={`/details/${listing.id || 1}`}
+          className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-white/90 hover:bg-white text-black font-semibold px-2.5 py-1 sm:px-6 sm:py-2 rounded-full text-[10px] sm:text-sm shadow-md backdrop-blur-sm transition-all active:scale-95"
+        >
+          View
+        </Link>
       </div>
 
-      {/* Content */}
-      <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-        <div>
-          <div className="flex items-center gap-1 text-slate-500 text-xs font-semibold mb-1">
-            <MapPin className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
-            <span className="truncate">{listing.location}</span>
+      {/* Overlapping Floating Card */}
+      <div className="relative -mt-8 sm:-mt-16 mx-1.5 sm:mx-3 mb-1.5 sm:mb-3 bg-white rounded-lg sm:rounded-[24px] p-2.5 sm:p-5 shadow-md flex flex-col space-y-1.5 sm:space-y-3">
+        {/* Title */}
+        <h3 className="text-xs sm:text-xl font-bold text-slate-900 tracking-tight line-clamp-1">
+          {title}
+        </h3>
+
+        {/* Info Rows */}
+        <div className="space-y-1 sm:space-y-2 pt-0.5 text-slate-600 text-[10px] sm:text-sm font-medium">
+          {/* Location */}
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            <MapPin className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-slate-700 shrink-0" />
+            <span className="truncate">{location}</span>
           </div>
 
-          <h3 className="text-base font-bold text-slate-800 group-hover:text-indigo-600 transition-colors line-clamp-1">
-            {listing.title}
-          </h3>
+          {/* Property Type */}
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            <Home className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-slate-700 shrink-0" />
+            <span className="truncate">{propertyType}</span>
+          </div>
 
-          <p className="text-slate-500 text-xs line-clamp-2 mt-1 leading-relaxed">
-            {listing.description}
-          </p>
-        </div>
+          {/* Entry Rent */}
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            <Calendar className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-slate-700 shrink-0" />
+            <div className="flex items-center gap-1 truncate">
+              <span className="text-slate-500 hidden xs:inline sm:inline">Entry:</span>
+              <span className="font-semibold text-slate-800">{entryRent}</span>
+            </div>
+          </div>
 
-        {/* Amenities Preview */}
-        <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-          <AmenitiesList amenities={(listing.amenities || []).slice(0, 3)} />
+          {/* Renewal Rent */}
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            <RefreshCw className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-slate-700 shrink-0" />
+            <div className="flex items-center gap-1 truncate">
+              <span className="text-slate-500 hidden xs:inline sm:inline">Renewal:</span>
+              <span className="font-semibold text-slate-800">{renewalRent}</span>
+            </div>
+          </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 
-// Prevents re-rendering every single card when parent state updates
 export default memo(ListingCard);

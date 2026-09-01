@@ -1,33 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchListingById } from '../services/api';
-import { useSaved } from '../context/SavedContext';
-import AmenitiesList from '../components/AmenitiesList';
+import { fetchListingById, fetchListings, parseAmenities } from '../services/api';
+import ListingCard from '../components/ListingCard';
 import { 
   MapPin, 
-  Heart, 
-  PhoneCall, 
-  MessageSquare, 
-  CheckCircle2, 
-  ArrowLeft, 
   Home, 
+  Calendar, 
+  RefreshCw, 
+  MoveHorizontal,
+  Sparkles,
+  Share2, 
+  Check, 
+  Copy, 
+  X, 
   Loader2, 
-  ShieldCheck,
-  Calendar,
-  AlertCircle
+  AlertCircle,
+  ArrowLeft
 } from 'lucide-react';
+import { FaWhatsapp, FaTwitter, FaFacebookF } from 'react-icons/fa';
+
+const GALLERY_FALLBACKS = [
+  'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80'
+];
 
 export default function ListingDetailPage() {
   const { id } = useParams();
   const [listing, setListing] = useState(null);
+  const [similarListings, setSimilarListings] = useState([]);
   const [activeImage, setActiveImage] = useState('');
+  const [galleryImages, setGalleryImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const { isSaved, toggleSave } = useSaved();
+  
+  // Share Modal State
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     loadDetails();
+    window.scrollTo(0, 0);
   }, [id]);
 
   const loadDetails = async () => {
@@ -36,9 +50,34 @@ export default function ListingDetailPage() {
     try {
       const data = await fetchListingById(id);
       setListing(data);
-      setActiveImage(data.cover_image_url || data.images?.[0]?.image_url || '');
+      
+      // Setup main image and gallery images (ensure 4 thumbnails)
+      const primaryImg = data.cover_image_url || data.images?.[0]?.image_url || GALLERY_FALLBACKS[0];
+      setActiveImage(primaryImg);
+
+      let rawImages = (data.images && data.images.length > 0) 
+        ? data.images.map(img => typeof img === 'string' ? img : img.image_url) 
+        : [primaryImg];
+
+      // Fill up to 4 images if fewer
+      GALLERY_FALLBACKS.forEach(fallback => {
+        if (rawImages.length < 4 && !rawImages.includes(fallback)) {
+          rawImages.push(fallback);
+        }
+      });
+      setGalleryImages(rawImages.slice(0, 4));
+
+      // Fetch similar listings for sidebar
+      try {
+        const allListings = await fetchListings();
+        const filtered = allListings.filter(item => String(item.id) !== String(id)).slice(0, 3);
+        setSimilarListings(filtered);
+      } catch (err) {
+        console.warn("Failed to load similar listings:", err);
+      }
+
     } catch (err) {
-      setError(err.message || "Failed to load listing details");
+      setError(err.message || "Failed to load lodge details");
     } finally {
       setLoading(false);
     }
@@ -70,182 +109,339 @@ export default function ListingDetailPage() {
     );
   }
 
-  const saved = isSaved(listing.id);
+  // Values formatted to match reference design
+  const title = listing.title || "El-Shaddai Royal Suite";
+  const location = listing.location || "El-Shaddai Royal Suite";
+  const propertyType = listing.rooms || "Self-Contained";
+  const entryRent = listing.first_price || listing.price 
+    ? `₦${Number(listing.first_price || listing.price).toLocaleString()}` 
+    : "₦350,000";
+  const renewalRent = listing.year_price 
+    ? `₦${Number(listing.year_price).toLocaleString()}` 
+    : "₦280,000";
+  const description = listing.description || "A spacious, modern self-contained apartment located steps away from Ifite Down School. Includes 24/7 security, personal balcony, and reliable water supply.";
+
+  // Display Amenities parsed from API
+  const displayAmenities = parseAmenities(listing.amenities);
+
+  // Sharable Link with embedded metadata parameters
+  const shareUrl = `${window.location.origin}/details/${listing.id}?title=${encodeURIComponent(title)}&image=${encodeURIComponent(activeImage)}&desc=${encodeURIComponent(description)}`;
+
+  // WhatsApp Agent Link (includes full sharable link with lodge title, image, and details)
   const phoneFormatted = (listing.agent_phone || '08000000000').replace(/\s+/g, '');
   const cleanPhone = phoneFormatted.startsWith('0') ? `234${phoneFormatted.slice(1)}` : phoneFormatted;
+  const whatsappMessage = `Hi ${listing.agent_name || 'Agent'}, I am interested in booking/viewing "${title}".\n\nProperty Link & Image:\n${shareUrl}`;
+  const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(whatsappMessage)}`;
+
+  // Share handlers
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title,
+          text: `${title} - ${description}`,
+          url: shareUrl
+        });
+        return;
+      } catch (err) {
+        // Fallback to modal if user canceled or failed
+      }
+    }
+    setShareModalOpen(true);
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
+  };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 animate-fade-in">
       
-      {/* Back Button & Actions */}
-      <div className="flex items-center justify-between">
-        <Link 
-          to="/" 
-          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to All Hostels</span>
-        </Link>
-
-        <button 
-          onClick={() => toggleSave(listing.id)}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-semibold transition-all ${saved ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'}`}
-        >
-          <Heart className={`w-4 h-4 ${saved ? 'fill-rose-500 text-rose-500' : ''}`} />
-          <span>{saved ? 'Saved' : 'Save Lodge'}</span>
-        </button>
-      </div>
-
-      {/* Header Info */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-4">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold mb-2">
-              <Home className="w-3.5 h-3.5" />
-              <span>{listing.rooms || 'Self-contained'}</span>
-            </div>
-            <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900">{listing.title}</h1>
-            <p className="flex items-center gap-1.5 text-slate-500 text-sm font-medium mt-1">
-              <MapPin className="w-4 h-4 text-indigo-600" />
-              <span>{listing.location}</span>
-            </p>
-          </div>
-
-          {/* Availability Status Badge */}
-          <span className={`px-4 py-1.5 rounded-full text-xs font-bold ${listing.is_available ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
-            {listing.is_available ? 'Available for Rent' : 'Occupied'}
-          </span>
-        </div>
-      </div>
-
-      {/* GALLERY & SIDEBAR LAYOUT */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* 2-Column Main Layout Grid matching design */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
         
-        {/* Main Gallery & Details */}
-        <div className="lg:col-span-2 space-y-8">
+        {/* LEFT COLUMN: Main Image, Thumbnails, Details, & Action Button */}
+        <div className="lg:col-span-8 space-y-6">
           
-          {/* Main Image */}
-          <div className="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-md aspect-[16/10]">
+          {/* Main Hero Image with Share Overlay */}
+          <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden bg-slate-100 shadow-md">
             <img 
               src={activeImage} 
-              alt={listing.title} 
-              className="w-full h-full object-cover"
+              alt={title}
+              className="w-full h-full object-cover object-center transition-all duration-300"
               onError={(e) => {
-                e.target.src = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80';
+                e.target.onerror = null;
+                e.target.src = GALLERY_FALLBACKS[0];
               }}
             />
+
+            {/* Share Button Overlay (Top Right) */}
+            <button
+              onClick={handleNativeShare}
+              className="absolute top-4 right-4 z-20 bg-white/90 hover:bg-white text-slate-800 font-semibold px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm shadow-md backdrop-blur-sm flex items-center gap-2 transition-all active:scale-95"
+            >
+              <span>Share</span>
+              <Share2 className="w-4 h-4 text-slate-700" />
+            </button>
           </div>
 
-          {/* Thumbnails */}
-          {listing.images && listing.images.length > 1 && (
-            <div className="flex items-center gap-3 overflow-x-auto pb-2">
-              {listing.images.map((img, idx) => (
-                <button 
-                  key={idx}
-                  onClick={() => setActiveImage(img.image_url)}
-                  className={`w-20 h-16 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-all ${activeImage === img.image_url ? 'border-indigo-600 scale-105 shadow-md' : 'border-transparent opacity-70 hover:opacity-100'}`}
-                >
-                  <img src={img.image_url} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
+          {/* 4 Thumbnail Image Gallery */}
+          <div className="grid grid-cols-4 gap-3 sm:gap-4">
+            {galleryImages.map((imgUrl, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveImage(imgUrl)}
+                className={`relative aspect-[4/3] w-full rounded-xl sm:rounded-2xl overflow-hidden border-2 transition-all ${
+                  activeImage === imgUrl 
+                    ? 'border-indigo-600 shadow-md scale-[0.98]' 
+                    : 'border-transparent opacity-85 hover:opacity-100'
+                }`}
+              >
+                <img 
+                  src={imgUrl} 
+                  alt={`Lodge view ${idx + 1}`} 
+                  className="w-full h-full object-cover" 
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = GALLERY_FALLBACKS[idx % GALLERY_FALLBACKS.length];
+                  }}
+                />
+              </button>
+            ))}
+          </div>
 
-          {/* Description Card */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-4">
-            <h2 className="text-xl font-bold text-slate-800 pb-3 border-b border-slate-100">About this Lodge</h2>
-            <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
-              {listing.description}
+          {/* Title & Description */}
+          <div className="pt-2 space-y-3">
+            <h1 className="text-2xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+              {title}
+            </h1>
+            <p className="text-slate-600 text-xs sm:text-base leading-relaxed max-w-3xl">
+              {description}
             </p>
           </div>
 
-          {/* Amenities Card */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-4">
-            <h2 className="text-xl font-bold text-slate-800 pb-3 border-b border-slate-100">Lodge Amenities</h2>
-            <AmenitiesList amenities={listing.amenities} />
-          </div>
+          {/* Details / Key Specs List matching reference */}
+          <div className="space-y-3 pt-2 text-slate-600 text-xs sm:text-sm font-medium">
+            {/* Location */}
+            <div className="flex items-center gap-3">
+              <MapPin className="w-5 h-5 text-slate-700 shrink-0" />
+              <span>{location}</span>
+            </div>
 
-          {/* Rules Card */}
-          {listing.rules && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-4">
-              <h2 className="text-xl font-bold text-slate-800 pb-3 border-b border-slate-100">House Rules & Policy</h2>
-              <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-200 text-sm text-amber-900">
-                <CheckCircle2 className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="leading-relaxed">{listing.rules}</p>
+            {/* Property Type */}
+            <div className="flex items-center gap-3">
+              <Home className="w-5 h-5 text-slate-700 shrink-0" />
+              <span>{propertyType}</span>
+            </div>
+
+            {/* Entry Rent */}
+            <div className="flex items-center gap-3">
+              <Calendar className="w-5 h-5 text-slate-700 shrink-0" />
+              <div className="flex items-center gap-1">
+                <span className="text-slate-500">Entry rent:</span>
+                <span className="font-semibold text-slate-800">{entryRent}</span>
               </div>
             </div>
-          )}
+
+            {/* Renewal Rent */}
+            <div className="flex items-center gap-3">
+              <RefreshCw className="w-5 h-5 text-slate-700 shrink-0" />
+              <div className="flex items-center gap-1">
+                <span className="text-slate-500">Renewal rent:</span>
+                <span className="font-semibold text-slate-800">{renewalRent}</span>
+              </div>
+            </div>
+
+            {/* Proximity to Campus */}
+            <div className="flex items-center gap-3">
+              <MoveHorizontal className="w-5 h-5 text-slate-700 shrink-0" />
+              <div className="flex items-center gap-1">
+                <span className="text-slate-500">Proximity to Campus:</span>
+                <span className="font-semibold text-slate-800">5 mins walk</span>
+              </div>
+            </div>
+
+            {/* Amenities */}
+            <div className="flex items-start sm:items-center gap-3">
+              <Sparkles className="w-5 h-5 text-slate-700 shrink-0 mt-0.5 sm:mt-0" />
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-slate-500">Amenities:</span>
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  {displayAmenities.map((amenity, idx) => (
+                    <span 
+                      key={idx} 
+                      className="px-3 py-1 bg-[#E5E7EB] text-slate-700 text-xs font-semibold rounded-full"
+                    >
+                      {typeof amenity === 'string' ? amenity : amenity?.name || amenity?.title || amenity}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* WhatsApp CTA Button */}
+          <div className="pt-4">
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 bg-[#222761] hover:bg-indigo-900 text-white font-bold rounded-full text-sm sm:text-base shadow-lg shadow-indigo-950/20 active:scale-95 transition-all w-full sm:w-auto text-center"
+            >
+              <span>Contact Agent On WhatsApp</span>
+            </a>
+          </div>
 
         </div>
 
-        {/* SIDEBAR AGENT & PRICE CARDS */}
-        <div className="space-y-6">
-          
-          {/* Price Breakdown Card */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-lg space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Rent Breakdown</h3>
-            
-            <div className="space-y-3">
-              <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-                <span className="text-xs font-medium text-slate-500">1st Year Package</span>
-                <span className="text-lg font-extrabold text-indigo-600">
-                  ₦{Number(listing.first_price || listing.price).toLocaleString()}
-                </span>
-              </div>
+        {/* RIGHT COLUMN: Similar Lodges */}
+        <div className="lg:col-span-4 space-y-6 pt-4 lg:pt-0">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            Similar Lodges
+          </h2>
 
-              {listing.year_price && (
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-medium text-slate-500">Subsequent Years</span>
-                  <span className="text-sm font-bold text-slate-700">
-                    ₦{Number(listing.year_price).toLocaleString()} / yr
-                  </span>
-                </div>
-              )}
-            </div>
+          <div className="grid grid-cols-2 lg:grid-cols-1 gap-2.5 sm:gap-6 justify-items-center">
+            {similarListings.length > 0 ? (
+              similarListings.map(item => (
+                <ListingCard key={item.id} listing={item} />
+              ))
+            ) : (
+              // Fallback cards if no API items available
+              [1, 2, 3].map(n => (
+                <ListingCard 
+                  key={n} 
+                  listing={{
+                    id: n + 10,
+                    title: "El-Shaddai Royal Suite",
+                    location: "El-Shaddai Royal Suite",
+                    rooms: "Self-Contained",
+                    price: 350000,
+                    renewalPrice: 280000,
+                    cover_image_url: GALLERY_FALLBACKS[n % GALLERY_FALLBACKS.length]
+                  }} 
+                />
+              ))
+            )}
           </div>
-
-          {/* Agent Card */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-lg text-center space-y-4">
-            <div className="relative w-20 h-20 mx-auto">
-              <img 
-                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${listing.agent_name}`}
-                alt={listing.agent_name}
-                className="w-full h-full rounded-full bg-indigo-50 border-4 border-indigo-100 shadow-sm"
-              />
-              <ShieldCheck className="w-6 h-6 text-indigo-600 absolute bottom-0 right-0 bg-white rounded-full p-0.5" />
-            </div>
-
-            <div>
-              <h4 className="text-lg font-bold text-slate-800">{listing.agent_name}</h4>
-              <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wider">Verified BookIt Agent</p>
-            </div>
-
-            <div className="pt-2 space-y-3">
-              {/* WhatsApp Button */}
-              <a 
-                href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Hi ${listing.agent_name}, I am interested in viewing "${listing.title}" on Book-It.`)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-2xl shadow-md shadow-emerald-200 transition-all flex items-center justify-center gap-2"
-              >
-                <MessageSquare className="w-5 h-5" />
-                <span>Chat on WhatsApp</span>
-              </a>
-
-              {/* Direct Call Button */}
-              <a 
-                href={`tel:${phoneFormatted}`}
-                className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-2xl shadow-md transition-all flex items-center justify-center gap-2"
-              >
-                <PhoneCall className="w-4 h-4" />
-                <span>Call Agent ({listing.agent_phone})</span>
-              </a>
-            </div>
-          </div>
-
         </div>
 
       </div>
+
+      {/* SHARE MODAL / DIALOG */}
+      {shareModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full mt-12 sm:mt-0 overflow-hidden border border-slate-100 animate-slide-up">
+            
+            {/* Header */}
+            <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Share2 className="w-5 h-5 text-indigo-400" />
+                <h3 className="font-bold text-base sm:text-lg">Share This Lodge</h3>
+              </div>
+              <button 
+                onClick={() => setShareModalOpen(false)}
+                className="text-white/80 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content Body */}
+            <div className="p-6 space-y-5">
+              
+              {/* Lodge Card Preview inside Modal */}
+              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                <img 
+                  src={activeImage} 
+                  alt={title} 
+                  className="w-16 h-16 rounded-xl object-cover shrink-0" 
+                />
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-bold text-sm text-slate-800 truncate">{title}</h4>
+                  <p className="text-xs text-slate-500 truncate">{location}</p>
+                  <p className="text-xs font-bold text-indigo-600 mt-0.5">{entryRent} / yr</p>
+                </div>
+              </div>
+
+              {/* Sharable Link Input & Copy Button */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-slate-600">Sharable Web Link</label>
+                <div className="flex items-center gap-2 bg-slate-100 p-1.5 pl-3 rounded-2xl border border-slate-200">
+                  <input 
+                    type="text" 
+                    readOnly 
+                    value={shareUrl}
+                    className="flex-1 min-w-0 bg-transparent text-xs font-medium text-slate-700 outline-none truncate"
+                  />
+                  <button
+                    onClick={handleCopyLink}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+                      copied 
+                        ? 'bg-emerald-600 text-white shadow-sm' 
+                        : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm'
+                    }`}
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy Link</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Social Media Quick Sharing */}
+              <div className="space-y-2 pt-1">
+                <span className="block text-xs font-semibold text-slate-600">Share via Social Media</span>
+                <div className="grid grid-cols-3 gap-2.5">
+                  {/* WhatsApp */}
+                  <a
+                    href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Check out ${title} on BookIt!\n${description}\n\nLink: ${shareUrl}`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors text-xs font-semibold"
+                  >
+                    <FaWhatsapp className="w-5 h-5 text-emerald-600" />
+                    <span>WhatsApp</span>
+                  </a>
+
+                  {/* Twitter / X */}
+                  <a
+                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${title} on BookIt!`)}&url=${encodeURIComponent(shareUrl)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-300 transition-colors text-xs font-semibold"
+                  >
+                    <FaTwitter className="w-5 h-5 text-sky-500" />
+                    <span>Twitter</span>
+                  </a>
+
+                  {/* Facebook */}
+                  <a
+                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200 transition-colors text-xs font-semibold"
+                  >
+                    <FaFacebookF className="w-5 h-5 text-blue-600" />
+                    <span>Facebook</span>
+                  </a>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -144,31 +144,52 @@ export async function searchListings({ location = '', minPrice = 0, maxPrice = I
   });
 }
 
-export async function createListing(listingData, imageFile = null, token = null) {
+export async function createListing(listingData, imageFiles = null, token = null) {
   const formData = new FormData();
+
   const fields = {
-    lodge_name: listingData.title,
+    lodge_name: listingData.lodge_name || listingData.title,
     description: listingData.description,
     first_price: listingData.first_price,
     year_price: listingData.year_price,
     location: listingData.location,
     room_type: listingData.room_type || toRoomType(listingData.rooms),
     total_rooms: listingData.total_rooms || 1,
-    rules: listingData.rules,
-    contact_email: listingData.agent_email,
-    contact_phone: listingData.agent_phone,
-    is_available: true
+    room_number: listingData.room_number || '',
+    video: listingData.video || '',
+    is_available: listingData.is_available !== false,
+    rules: listingData.rules || '',
+    contact_phone: listingData.contact_phone || listingData.agent_phone,
+    contact_email: listingData.contact_email || listingData.agent_email
   };
 
   Object.entries(fields).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') formData.append(key, String(value));
+    if (value !== undefined && value !== null && value !== '') {
+      formData.append(key, String(value));
+    }
   });
 
-  const amenities = Array.isArray(listingData.amenities)
-    ? listingData.amenities
-    : String(listingData.amenities || '').split(',').map(item => item.trim()).filter(Boolean);
-  if (amenities.length > 0) formData.append('amenity_names', JSON.stringify(amenities));
-  if (imageFile) formData.append('uploaded_images', imageFile, imageFile.name);
+  const amenityNames = Array.isArray(listingData.amenity_names)
+    ? listingData.amenity_names
+    : Array.isArray(listingData.amenities)
+      ? listingData.amenities
+      : String(listingData.amenities || '').split(',').map(s => s.trim()).filter(Boolean);
+
+  if (amenityNames.length > 0) {
+    formData.append('amenity_names', JSON.stringify(amenityNames));
+  }
+
+  const filesToUpload = Array.isArray(imageFiles) 
+    ? imageFiles 
+    : imageFiles 
+      ? [imageFiles] 
+      : [];
+  
+  filesToUpload.forEach(file => {
+    if (file instanceof File) {
+      formData.append('uploaded_images', file, file.name);
+    }
+  });
 
   return normalizeListing(await apiRequest('/listings/', 'POST', formData, token));
 }
@@ -234,6 +255,54 @@ export async function submitAgentRequest(formData) {
   }
 }
 
+export function parseAmenities(amenitiesInput) {
+  if (!amenitiesInput) return ["Running Water", "Electricity"];
+
+  let result = [];
+
+  const extractItem = (item) => {
+    if (!item) return;
+    if (typeof item === 'string') {
+      let trimmed = item.trim();
+      if ((trimmed.startsWith('[') && trimmed.endsWith(']')) || (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) {
+            parsed.forEach(extractItem);
+            return;
+          }
+        } catch {
+          // not valid JSON
+        }
+      }
+      trimmed = trimmed.replace(/^\[|\]$/g, '').replace(/^"|"$/g, '').replace(/\\"/g, '"').trim();
+      if (trimmed) {
+        if (trimmed.includes(',')) {
+          trimmed.split(',').forEach(sub => {
+            const cleanSub = sub.replace(/^"|"$/g, '').trim();
+            if (cleanSub) result.push(cleanSub);
+          });
+        } else {
+          result.push(trimmed);
+        }
+      }
+    } else if (typeof item === 'object') {
+      if (item.name) extractItem(item.name);
+      else if (item.title) extractItem(item.title);
+      else if (item.amenity) extractItem(item.amenity);
+    }
+  };
+
+  if (Array.isArray(amenitiesInput)) {
+    amenitiesInput.forEach(extractItem);
+  } else {
+    extractItem(amenitiesInput);
+  }
+
+  const unique = Array.from(new Set(result)).filter(Boolean);
+  return unique.length > 0 ? unique : ["Running Water", "Electricity"];
+}
+
 // Normalize listing object structure for React UI consistency
 function normalizeListing(item) {
   const price = Number(item.year_price || item.first_price || item.price || 0);
@@ -247,14 +316,7 @@ function normalizeListing(item) {
     images = [{ image_url: imageUrl }];
   }
 
-  let amenitiesList = [];
-  if (Array.isArray(item.amenities)) {
-    amenitiesList = item.amenities;
-  } else if (typeof item.amenities === 'string') {
-    amenitiesList = item.amenities.split(',').map(a => a.trim()).filter(Boolean);
-  } else {
-    amenitiesList = ["Water", "Electricity", "Security"];
-  }
+  const amenitiesList = parseAmenities(item.amenities);
 
   return {
     id: item.id,

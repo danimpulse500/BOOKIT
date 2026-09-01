@@ -6,7 +6,6 @@ import { SavedProvider } from './context/SavedContext';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import FloatingAgentBtn from './components/FloatingAgentBtn';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import HomePage from './pages/HomePage';
@@ -29,7 +28,7 @@ export default function App() {
       <Router>
         <AuthProvider>
           <SavedProvider>
-            <div className="min-h-screen flex flex-col justify-between bg-slate-50 selection:bg-indigo-500 selection:text-white">
+            <div className="min-h-screen flex flex-col justify-between bg-white selection:bg-indigo-500 selection:text-white">
               <Navbar />
 
               <main className="flex-1">
@@ -68,7 +67,6 @@ export default function App() {
                 </Routes>
               </main>
 
-              <FloatingAgentBtn />
               <Footer />
             </div>
           </SavedProvider>
