@@ -79,7 +79,7 @@ export default function LoginPage() {
 
         {/* Header */}
         <div className="text-center space-y-2">
-          <img src="/logo.png" alt="BookIt" className="h-10 mx-auto" />
+          {/* <img src="/logo.png" alt="BookIt" className="h-10 mx-auto" /> */}
           <h1 className="text-2xl font-extrabold text-slate-900">Welcome Back</h1>
           <p className="text-xs text-slate-500">Log in to manage your bookings and saved student lodges</p>
         </div>
@@ -169,7 +169,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-bold rounded-2xl shadow-xl shadow-indigo-200 transition-all flex items-center justify-center gap-2"
+              className="w-full py-3.5 bg-[#222761] hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-bold rounded-2xl shadow-xl shadow-indigo-200 transition-all flex items-center justify-center gap-2"
             >
               {submitting ? (
                 <>

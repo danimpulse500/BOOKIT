@@ -60,7 +60,7 @@ export default function SignupPage() {
       <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-2xl max-w-lg w-full space-y-6">
         
         <div className="text-center space-y-2">
-          <img src="/logo.png" alt="BookIt" className="h-10 mx-auto" />
+          {/* <img src="./bookit-logo.png" alt="BookIt" className="h-10 mx-auto" /> */}
           <h1 className="text-2xl font-extrabold text-slate-900">Create Your Book-It Account</h1>
           <p className="text-xs text-slate-500">Join thousands of students and verified lodge agents</p>
         </div>
@@ -81,7 +81,7 @@ export default function SignupPage() {
             className={`py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${role === 'Agent' ? 'bg-white text-amber-600 shadow-md' : 'text-slate-500 hover:text-slate-800'}`}
           >
             <Crown className="w-4 h-4 text-amber-500" />
-            <span>Lodge Agent</span>
+            <span>Agent</span>
           </button>
         </div>
 
@@ -173,7 +173,7 @@ export default function SignupPage() {
           <button 
             type="submit"
             disabled={submitting}
-            className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-xl shadow-indigo-200 transition-all flex items-center justify-center gap-2"
+            className="w-full py-3.5 bg-[#222761] hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-xl shadow-indigo-200 transition-all flex items-center justify-center gap-2"
           >
             {submitting ? (
               <>
