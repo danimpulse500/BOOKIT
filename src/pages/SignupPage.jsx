@@ -60,7 +60,7 @@ export default function SignupPage() {
       <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-2xl max-w-lg w-full space-y-6">
         
         <div className="text-center space-y-2">
-          {/* <img src="./bookit-logo.png" alt="BookIt" className="h-10 mx-auto" /> */}
+          {/* <img src="/bookit-logo.png" alt="BookIt" className="h-10 mx-auto" /> */}
           <h1 className="text-2xl font-extrabold text-slate-900">Create Your Book-It Account</h1>
           <p className="text-xs text-slate-500">Join thousands of students and verified lodge agents</p>
         </div>

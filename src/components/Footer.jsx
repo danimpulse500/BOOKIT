@@ -14,7 +14,15 @@ export default function Footer() {
           {/* Brand & Description Column */}
           <div className="sm:col-span-2 lg:col-span-4 space-y-4 sm:space-y-6">
             <div className="flex items-center space-x-2">
-              <img src="./bookit-logo.png" alt="BOOK IT" className="h-8 sm:h-10 w-auto" />
+              <img 
+                src="/bookit-logo.png" 
+                alt="BOOK IT" 
+                className="h-8 sm:h-10 w-auto" 
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = '/logo.png';
+                }}
+              />
             </div>
             
             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-sm">
@@ -70,8 +78,8 @@ export default function Footer() {
                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#1E204A] text-white flex items-center justify-center shrink-0">
                   <Mail size={13} />
                 </div>
-                <a href="mailto:support@bookit.it.com" className="text-xs break-all hover:underline leading-tight pt-1">
-                  support@bookit.it.com
+                <a href="mailto:bookit.office@gmail.com" className="text-xs break-all hover:underline leading-tight pt-1">
+                  bookit.office@gmail.com
                 </a>
               </li>
               <li className="flex items-start space-x-3">

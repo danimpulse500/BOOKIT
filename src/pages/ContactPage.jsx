@@ -30,7 +30,7 @@ export default function ContactPage() {
 
         {/* CONTACT INFO */}
         <div className="space-y-6">
-          <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white rounded-3xl p-8 shadow-xl space-y-6">
+          <div className="bg-gradient-to-br from-[#1E204A] to-purple-700 text-white rounded-3xl p-8 shadow-xl space-y-6">
             <h3 className="text-xl font-bold">Get in Touch</h3>
             <p className="text-xs text-indigo-100 leading-relaxed">
               We respond to student inquiries and agent verification requests within 24 hours.
@@ -72,7 +72,7 @@ export default function ContactPage() {
               </p>
               <button
                 onClick={() => setSubmitted(false)}
-                className="px-6 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-full hover:bg-indigo-700 transition-all"
+                className="px-6 py-2.5 bg-[#1E204A] text-white text-xs font-bold rounded-full hover:bg-indigo-700 transition-all"
               >
                 Send Another Message
               </button>
@@ -133,7 +133,7 @@ export default function ContactPage() {
 
               <button
                 type="submit"
-                className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-xl shadow-indigo-200 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-[#1E204A] hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-xl shadow-indigo-200 transition-all flex items-center justify-center gap-2"
               >
                 <Send className="w-4 h-4" />
                 <span>Send Message</span>

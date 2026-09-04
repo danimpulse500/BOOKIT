@@ -6,12 +6,13 @@ import { SavedProvider } from './context/SavedContext';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import FloatingAddLodgeBtn from './components/FloatingAddLodgeBtn';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import HomePage from './pages/HomePage';
 import ListingDetailPage from './pages/ListingDetailPage';
+import AgentProfilePage from './pages/AgentProfilePage';
 import PostLodgePage from './pages/PostLodgePage';
-import MyListingsPage from './pages/MyListingsPage';
 import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
@@ -35,19 +36,12 @@ export default function App() {
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/details/:id" element={<ListingDetailPage />} />
+                  <Route path="/agent/:id" element={<AgentProfilePage />} />
                   <Route
                     path="/post"
                     element={
                       <ProtectedRoute agentOnly={true}>
                         <PostLodgePage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/my-listings"
-                    element={
-                      <ProtectedRoute agentOnly={true}>
-                        <MyListingsPage />
                       </ProtectedRoute>
                     }
                   />
@@ -68,6 +62,7 @@ export default function App() {
               </main>
 
               <Footer />
+              <FloatingAddLodgeBtn />
             </div>
           </SavedProvider>
         </AuthProvider>

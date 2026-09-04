@@ -185,8 +185,8 @@ export default function HomePage() {
 
         {/* LISTINGS GRID & STATES */}
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6 justify-items-center">
-            {[1, 2, 3, 4, 5, 6].map(n => (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-6 justify-items-center">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
               <div key={n} className="w-full max-w-sm bg-white rounded-xl sm:rounded-3xl p-2.5 sm:p-4 border border-slate-200 shadow-sm space-y-2 sm:space-y-4 animate-pulse">
                 <div className="h-28 sm:h-48 bg-slate-200 rounded-lg sm:rounded-2xl"></div>
                 <div className="h-3 sm:h-4 bg-slate-200 rounded w-3/4"></div>
@@ -196,7 +196,7 @@ export default function HomePage() {
             ))}
           </div>
         ) : filteredListings.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6 justify-items-center">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-6 justify-items-center">
             {filteredListings.map(listing => (
               <ListingCard key={listing.id} listing={listing} />
             ))}
