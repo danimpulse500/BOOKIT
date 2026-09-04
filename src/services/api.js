@@ -303,6 +303,59 @@ export function parseAmenities(amenitiesInput) {
   return unique.length > 0 ? unique : ["Running Water", "Electricity"];
 }
 
+function formatRoomType(value) {
+  if (!value) return "Self-Contained";
+  const s = String(value).toUpperCase();
+  if (s.includes("SELF")) return "Self-Contained";
+  if (s.includes("SINGLE")) return "Single Room";
+  if (s.includes("TWO") || s.includes("2")) return "Two Bedroom";
+  if (s.includes("ONE") || s.includes("1")) return "One Bedroom";
+  if (s.includes("STUDIO")) return "Studio";
+  if (s.includes("SHARED")) return "Shared Room";
+  return value.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+}
+
+export async function fetchAgentById(agentId) {
+  try {
+    const listings = await fetchListings();
+    const agentListings = listings.filter(
+      l => String(l.agent) === String(agentId) || String(l.agent_detail?.id) === String(agentId)
+    );
+
+    const firstMatch = agentListings[0];
+    const agentDetail = firstMatch?.agent_detail || {};
+
+    return {
+      id: agentId,
+      full_name: agentDetail.full_name || firstMatch?.agent_name || "David Chukwuchebem",
+      username: agentDetail.username || "daviddominic767",
+      email: agentDetail.email || firstMatch?.agent_email || "daviddominic767@gmail.com",
+      phone_number: agentDetail.phone_number || firstMatch?.agent_phone || "08107045642",
+      agency_name: agentDetail.agency_name || firstMatch?.agency || "BOOKIT AGENCY",
+      location: firstMatch?.location || "Ifite Omohia",
+      avatar: "/avatar.png",
+      is_agent: true,
+      date_joined: agentDetail.date_joined || "2026-08-27T09:33:29.073242Z",
+      listings: agentListings.length > 0 ? agentListings : listings
+    };
+  } catch (err) {
+    console.warn("fetchAgentById failed:", err);
+    return {
+      id: agentId,
+      full_name: "David Chukwuchebem",
+      username: "daviddominic767",
+      email: "daviddominic767@gmail.com",
+      phone_number: "08107045642",
+      agency_name: "BOOKIT AGENCY",
+      location: "Ifite Omohia",
+      avatar: "/avatar.png",
+      is_agent: true,
+      date_joined: "2026-08-27T09:33:29.073242Z",
+      listings: []
+    };
+  }
+}
+
 // Normalize listing object structure for React UI consistency
 function normalizeListing(item) {
   const price = Number(item.year_price || item.first_price || item.price || 0);
@@ -317,29 +370,35 @@ function normalizeListing(item) {
   }
 
   const amenitiesList = parseAmenities(item.amenities);
+  const agentDetail = item.agent_detail || {};
 
   return {
     id: item.id,
     title: item.title || item.lodge_name || "Student Lodge",
-    location: item.location_display || item.location || "Awka, Anambra State",
+    lodge_name: item.lodge_name || item.title || "Student Lodge",
+    location: item.location_display || item.location || "Ifite Anambra",
+    location_display: item.location_display || item.location || "Ifite Anambra",
     price: price,
     first_price: item.first_price || String(price * 1.2),
-    year_price: item.year_price || item.price || String(price),
+    year_price: item.year_price || (price ? String(price) : null),
     displayPrice: price,
+    renewalPrice: item.year_price || price,
     cover_image_url: imageUrl,
     images: images,
     description: item.description || "Spacious student lodge in a calm and accessible neighborhood.",
-    rooms: item.rooms || item.room_type || "Self-contained",
+    rooms: formatRoomType(item.room_type || item.rooms),
     room_type: item.room_type,
     total_rooms: item.total_rooms,
     room_number: item.room_number,
     amenities: amenitiesList,
     rules: item.rules || "No loud music after 10 PM. Maintain cleanliness.",
-    agent_name: item.agent_name || item.agent_detail?.full_name || item.agent_detail?.username || "BookIt Agent",
-    agent_phone: item.agent_phone || item.contact_phone || item.agent_detail?.phone_number || "+2349134850138",
-    agent_email: item.agent_email || item.contact_email || item.agent_detail?.email || "agent@bookit.com",
-    agent: item.agent,
-    agency: item.agency,
+    agent_name: item.agent_name || agentDetail.full_name || agentDetail.username || "David Chukwuchebem",
+    agent_phone: item.agent_phone || item.contact_phone || agentDetail.phone_number || "08107045642",
+    agent_email: item.agent_email || item.contact_email || agentDetail.email || "daviddominic767@gmail.com",
+    agent_avatar: item.agent_avatar || agentDetail.avatar || "/avatar.png",
+    agent: item.agent || agentDetail.id || 14,
+    agent_detail: agentDetail,
+    agency: item.agency || agentDetail.agency_name || "BOOKIT AGENCY",
     is_available: item.is_available !== false
   };
 }

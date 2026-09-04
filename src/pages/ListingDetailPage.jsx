@@ -15,7 +15,13 @@ import {
   X, 
   Loader2, 
   AlertCircle,
-  ArrowLeft
+  ArrowLeft,
+  MessageSquareText,
+  ShieldCheck,
+  Phone,
+  Mail,
+  Building2,
+  User
 } from 'lucide-react';
 import { FaWhatsapp, FaTwitter, FaFacebookF } from 'react-icons/fa';
 
@@ -127,10 +133,25 @@ export default function ListingDetailPage() {
   // Sharable Link with embedded metadata parameters
   const shareUrl = `${window.location.origin}/details/${listing.id}?title=${encodeURIComponent(title)}&image=${encodeURIComponent(activeImage)}&desc=${encodeURIComponent(description)}`;
 
-  // WhatsApp Agent Link (includes full sharable link with lodge title, image, and details)
-  const phoneFormatted = (listing.agent_phone || '08000000000').replace(/\s+/g, '');
-  const cleanPhone = phoneFormatted.startsWith('0') ? `234${phoneFormatted.slice(1)}` : phoneFormatted;
-  const whatsappMessage = `Hi ${listing.agent_name || 'Agent'}, I am interested in booking/viewing "${title}".\n\nProperty Link & Image:\n${shareUrl}`;
+  // Agent profile details
+  const agentDetail = listing.agent_detail || {};
+  const agentName = listing.agent_name || agentDetail.full_name || agentDetail.username || "David Chukwuchebem";
+  const agentId = listing.agent || agentDetail.id || listing.id;
+  const agentPhone = listing.agent_phone || agentDetail.phone_number || listing.contact_phone || "08107045642";
+  const agentEmail = listing.agent_email || agentDetail.email || listing.contact_email || "daviddominic767@gmail.com";
+  const agencyName = listing.agency || agentDetail.agency_name || null;
+  const agentSubtitle = agencyName || listing.location_display || listing.location || "Ifite Omohia";
+  const agentAvatar = listing.agent_avatar || agentDetail.avatar || "/avatar.png";
+
+  // WhatsApp Agent Link (sanitized for Nigerian numbers +234)
+  const rawPhone = String(agentPhone).replace(/[^0-9+]/g, '');
+  let cleanPhone = rawPhone.replace(/^\+/, '');
+  if (cleanPhone.startsWith('0')) {
+    cleanPhone = '234' + cleanPhone.slice(1);
+  } else if (!cleanPhone.startsWith('234')) {
+    cleanPhone = '234' + cleanPhone;
+  }
+  const whatsappMessage = `Hi ${agentName}, I am interested in booking/viewing "${title}".\n\nProperty Link:\n${shareUrl}`;
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(whatsappMessage)}`;
 
   // Share handlers
@@ -282,13 +303,45 @@ export default function ListingDetailPage() {
             </div>
           </div>
 
+          {/* Agent Profile Section matching screenshot */}
+          <div className="pt-3 sm:pt-4 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+              <img 
+                src={agentAvatar} 
+                alt={agentName}
+                className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover shrink-0 border border-slate-200 shadow-sm"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = '/avatar.png';
+                }}
+              />
+              <div className="min-w-0">
+                <h4 className="font-bold text-slate-900 text-sm sm:text-base tracking-tight truncate leading-snug">
+                  {agentName}
+                </h4>
+                <p className="text-xs sm:text-sm text-slate-500 font-medium truncate">
+                  {agentSubtitle}
+                </p>
+              </div>
+            </div>
+
+            {/* View Profile Button - Links to Agent Profile Page */}
+            <Link
+              to={`/agent/${agentId}`}
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-medium transition-all shadow-sm active:scale-95 shrink-0"
+            >
+              <span>View Profile</span>
+              <MessageSquareText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600" />
+            </Link>
+          </div>
+
           {/* WhatsApp CTA Button */}
-          <div className="pt-4">
+          <div className="pt-2 sm:pt-4">
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 bg-[#222761] hover:bg-indigo-900 text-white font-bold rounded-full text-sm sm:text-base shadow-lg shadow-indigo-950/20 active:scale-95 transition-all w-full sm:w-auto text-center"
+              className="inline-flex items-center justify-center gap-2.5 px-6 sm:px-8 py-3.5 bg-[#222761] hover:bg-[#1a1e4c] text-white font-bold rounded-2xl sm:rounded-full text-sm sm:text-base shadow-lg shadow-indigo-950/20 active:scale-95 transition-all w-full sm:w-auto text-center"
             >
               <span>Contact Agent On WhatsApp</span>
             </a>

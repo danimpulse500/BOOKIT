@@ -5,12 +5,14 @@ import { MapPin, Home, Calendar, RefreshCw } from 'lucide-react';
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=600&q=75';
 
 function ListingCard({ listing = {} }) {
-  // Hardcoded values based on image with dynamic fallbacks
-  const title = listing.title || "Staircase at Ifite Up School";
-  const location = listing.location || "El-Shaddai Royal Suite";
+  // Values with dynamic fallbacks
+  const title = listing.title || listing.lodge_name || "Staircase at Ifite Up School";
+  const location = listing.location_display || listing.location || "El-Shaddai Royal Suite";
   const propertyType = listing.rooms || "Self-Contained";
-  const entryRent = listing.price ? `₦${Number(listing.price).toLocaleString()}` : "₦350,000";
-  const renewalRent = listing.renewalPrice ? `₦${Number(listing.renewalPrice).toLocaleString()}` : "₦280,000";
+  const rawEntry = listing.first_price || listing.price;
+  const entryRent = rawEntry ? `₦${Number(rawEntry).toLocaleString()}` : "₦350,000";
+  const rawRenewal = listing.year_price || listing.renewalPrice;
+  const renewalRent = rawRenewal ? `₦${Number(rawRenewal).toLocaleString()}` : "₦280,000";
 
   return (
     <div className="relative w-full max-w-sm rounded-xl sm:rounded-[32px] overflow-hidden bg-slate-100 shadow-sm hover:shadow-md transition-shadow">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -8,19 +8,29 @@ import {
   PlusCircle,
   LogOut,
   Home,
-  HelpCircle,
-  Bookmark,
-  Building,
-  ChevronDown,
-  ShieldAlert
+  HelpCircle
 } from 'lucide-react';
 
 export default function Navbar() {
   const { user, isLoggedIn, isAgent, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const userDropdownRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+        setUserDropdownOpen(false);
+      }
+    }
+    if (userDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [userDropdownOpen]);
 
   const handleLogout = () => {
     logout();
@@ -31,8 +41,6 @@ export default function Navbar() {
 
   const isActive = (path) => location.pathname === path;
 
-  const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'D';
-
   return (
     <div className="flex justify-center mt-3 sm:mt-8 sticky top-3 sm:top-5 z-40 px-2 sm:px-0">
       <header className="relative w-[calc(100%-1.5rem)] sm:w-[calc(100%-3rem)] md:w-[calc(100%-5rem)] bg-white/90 backdrop-blur-md border border-slate-200/80 shadow-sm transition-all duration-200 rounded-full sm:rounded-[500px]">
@@ -41,9 +49,13 @@ export default function Navbar() {
         {/* Brand Logo */}
         <Link to="/" className="flex items-center gap-2.5 group focus:outline-none shrink-0">
           <img
-            src="./bookit-logo.png"
+            src="/bookit-logo.png"
             alt="BookIt Logo"
             className="h-7 sm:h-9 w-auto object-contain transition-transform group-hover:scale-105"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = '/logo.png';
+            }}
           />
         </Link>
 
@@ -56,36 +68,20 @@ export default function Navbar() {
             Home
           </Link>
 
-          {isAgent ? (
-            <>
-              <Link
-                to="/my-listings"
-                className={`text-sm font-medium transition-colors ${isActive('/my-listings') ? 'text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-900'}`}
-              >
-                My Listings
-              </Link>
-              <Link
-                to="/contact"
-                className={`text-sm font-medium transition-colors ${isActive('/contact') ? 'text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-900'}`}
-              >
-                Contact
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link
-                to="/contact"
-                className={`text-sm font-medium transition-colors ${isActive('/contact') ? 'text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-900'}`}
-              >
-                Contact
-              </Link>
-              <Link
-                to="/contact"
-                className={`text-sm font-medium transition-colors ${isActive('/contact') ? 'text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-900'}`}
-              >
-                Become a vendor
-              </Link>
-            </>
+          <Link
+            to="/contact"
+            className={`text-sm font-medium transition-colors ${isActive('/contact') ? 'text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-900'}`}
+          >
+            Contact
+          </Link>
+
+          {!isAgent && (
+            <Link
+              to="/contact"
+              className={`text-sm font-medium transition-colors ${isActive('/contact') ? 'text-slate-900 font-bold' : 'text-slate-500 hover:text-slate-900'}`}
+            >
+              Become a vendor
+            </Link>
           )}
 
           {/* User & Action Section */}
@@ -100,66 +96,102 @@ export default function Navbar() {
                 </Link>
               )}
 
-              {/* User Initial Circle Avatar */}
-              <div className="relative">
+              {/* User Avatar Circle */}
+              <div className="relative" ref={userDropdownRef}>
                 <button
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="w-9 h-9 rounded-full bg-[#F3F4F6] text-slate-700 font-bold flex items-center justify-center border border-slate-200/80 hover:border-slate-300 transition-all focus:outline-none text-sm"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border border-slate-200/80 hover:border-slate-300 transition-all focus:outline-none active:scale-95 shadow-sm bg-slate-100 flex items-center justify-center shrink-0"
                   title={user?.name || 'User Profile'}
+                  aria-expanded={userDropdownOpen}
                 >
-                  {userInitial}
+                  <img
+                    src="/avatar.png"
+                    alt={user?.name || 'User Profile'}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/avatar.png';
+                    }}
+                  />
                 </button>
 
-                {/* User Dropdown */}
+                {/* User Dropdown matching mobile drawer style */}
                 {userDropdownOpen && (
                   <div
-                    className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 animate-fade-in z-50"
-                    onMouseLeave={() => setUserDropdownOpen(false)}
+                    className="absolute right-0 mt-3 w-72 bg-white rounded-3xl shadow-2xl border border-slate-200 p-4 space-y-3 animate-slide-up z-50"
                   >
-                    <div className="px-4 py-2 border-b border-slate-100">
-                      <p className="text-xs text-slate-400">Signed in as</p>
-                      <p className="text-sm font-semibold text-slate-800 truncate">{user?.email}</p>
+                    {/* User Info Card */}
+                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200/60">
+                      <img
+                        src="/avatar.png"
+                        alt={user?.name || 'User'}
+                        className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm shrink-0 bg-white"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = '/avatar.png';
+                        }}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-slate-900 truncate">{user?.name || 'My Account'}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${isAgent ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-800'}`}>
+                            {user?.role || (isAgent ? 'Agent' : 'Lodger')}
+                          </span>
+                          <span className="text-[11px] text-slate-400 truncate">{user?.email}</span>
+                        </div>
+                      </div>
                     </div>
 
-                    {isAgent && (
-                      <>
+                    {/* Navigation Items */}
+                    <div className="space-y-1">
+                      <Link
+                        to="/"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 font-medium transition-colors text-sm"
+                      >
+                        <Home className="w-4 h-4 text-slate-500" />
+                        <span>Home</span>
+                      </Link>
+
+                      <Link
+                        to="/contact"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 font-medium transition-colors text-sm"
+                      >
+                        <HelpCircle className="w-4 h-4 text-slate-500" />
+                        <span>Contact</span>
+                      </Link>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 space-y-1">
+                      {isAgent && (
                         <Link
                           to="/post"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-slate-900"
+                          className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 font-medium transition-colors text-sm"
                         >
-                          <PlusCircle className="w-4 h-4 text-indigo-500" />
-                          <span>Post New Lodge</span>
+                          <PlusCircle className="w-4 h-4 text-slate-500" />
+                          <span>Post Lodge</span>
                         </Link>
-                        <Link
-                          to="/my-listings"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-slate-900"
-                        >
-                          <Building className="w-4 h-4 text-indigo-500" />
-                          <span>My Listings</span>
-                        </Link>
-                      </>
-                    )}
+                      )}
 
-                    <Link
-                      to="/profile"
-                      onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-slate-900"
-                    >
-                      <User className="w-4 h-4 text-indigo-500" />
-                      <span>Profile & Saved</span>
-                    </Link>
+                      <Link
+                        to="/profile"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 font-medium transition-colors text-sm"
+                      >
+                        <User className="w-4 h-4 text-slate-500" />
+                        <span>Profile</span>
+                      </Link>
 
-                    <div className="border-t border-slate-100 my-1"></div>
-
-                    <button
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 text-left font-medium"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span>Logout</span>
-                    </button>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-rose-600 hover:bg-rose-50 font-semibold text-left transition-colors text-sm"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Logout</span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -192,15 +224,22 @@ export default function Navbar() {
           {isLoggedIn ? (
             <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200/60">
               <img
-                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name || 'User'}`}
-                alt="Avatar"
-                className="w-10 h-10 rounded-full bg-indigo-100"
+                src="/avatar.png"
+                alt={user?.name || 'User'}
+                className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm shrink-0 bg-white"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = '/avatar.png';
+                }}
               />
-              <div>
-                <p className="text-sm font-semibold text-slate-800">{user?.name}</p>
-                <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded ${isAgent ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}`}>
-                  {user?.role || 'Lodger'}
-                </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-slate-900 truncate">{user?.name || 'My Account'}</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${isAgent ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-800'}`}>
+                    {user?.role || (isAgent ? 'Agent' : 'Lodger')}
+                  </span>
+                  <span className="text-[11px] text-slate-400 truncate">{user?.email}</span>
+                </div>
               </div>
             </div>
           ) : null}
@@ -211,7 +250,7 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 font-medium transition-colors"
             >
-              <Home className="w-5 h-5 text-indigo-500" />
+              <Home className="w-5 h-5" />
               <span>Home</span>
             </Link>
 
@@ -220,8 +259,8 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 font-medium transition-colors"
             >
-              <HelpCircle className="w-5 h-5 text-indigo-500" />
-              <span>Contact / Support</span>
+              <HelpCircle className="w-5 h-5" />
+              <span>Contact</span>
             </Link>
           </div>
 
@@ -229,22 +268,22 @@ export default function Navbar() {
             <div className="pt-2 border-t border-slate-100 space-y-1">
               {isAgent && (
                 <>
-                  <Link
+                  {/* <Link
                     to="/post"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-indigo-700 bg-indigo-50 font-semibold transition-colors"
+                    className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[#1E204A] bg-indigo-50 font-semibold transition-colors"
                   >
-                    <PlusCircle className="w-5 h-5 text-indigo-600" />
+                    <PlusCircle className="w-5 h-5 text-[#1E204A]" />
                     <span>Post Lodge</span>
-                  </Link>
-                  <Link
+                  </Link> */}
+                  {/* <Link
                     to="/my-listings"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 font-medium transition-colors"
                   >
-                    <Building className="w-5 h-5 text-indigo-500" />
+                    <Building className="w-5 h-5" />
                     <span>My Listings</span>
-                  </Link>
+                  </Link> */}
                 </>
               )}
 
@@ -253,7 +292,7 @@ export default function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 font-medium transition-colors"
               >
-                <User className="w-5 h-5 text-indigo-500" />
+                <User className="w-5 h-5" />
                 <span>Profile</span>
               </Link>
 
@@ -277,7 +316,7 @@ export default function Navbar() {
               <Link
                 to="/signup"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2.5 rounded-xl bg-indigo-600 text-white font-semibold shadow-md shadow-indigo-200 hover:bg-indigo-700 transition-colors text-sm"
+                className="w-full text-center py-2.5 rounded-xl bg-[#1E204A] text-white font-semibold hover:bg-indigo-700 transition-colors text-sm"
               >
                 Sign Up
               </Link>
