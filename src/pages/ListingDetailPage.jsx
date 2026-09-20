@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchListingById, fetchListings, parseAmenities } from '../services/api';
 import ListingCard from '../components/ListingCard';
@@ -17,11 +17,8 @@ import {
   AlertCircle,
   ArrowLeft,
   MessageSquareText,
-  ShieldCheck,
-  Phone,
-  Mail,
-  Building2,
-  User
+  Play,
+  Video
 } from 'lucide-react';
 import { FaWhatsapp, FaTwitter, FaFacebookF } from 'react-icons/fa';
 
@@ -36,11 +33,13 @@ export default function ListingDetailPage() {
   const { id } = useParams();
   const [listing, setListing] = useState(null);
   const [similarListings, setSimilarListings] = useState([]);
-  const [activeImage, setActiveImage] = useState('');
-  const [galleryImages, setGalleryImages] = useState([]);
+  const [activeMedia, setActiveMedia] = useState(null); // { type: 'image' | 'video', url, poster }
+  const [mediaTabs, setMediaTabs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef(null);
+
   // Share Modal State
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -56,24 +55,49 @@ export default function ListingDetailPage() {
     try {
       const data = await fetchListingById(id);
       setListing(data);
-      
-      // Setup main image and gallery images (ensure 4 thumbnails)
-      const primaryImg = data.cover_image_url || data.images?.[0]?.image_url || GALLERY_FALLBACKS[0];
-      setActiveImage(primaryImg);
 
-      let rawImages = (data.images && data.images.length > 0) 
-        ? data.images.map(img => typeof img === 'string' ? img : img.image_url) 
-        : [primaryImg];
+      // Build unified media list: video first (if present), then images
+      const images = (data.images && data.images.length > 0)
+        ? data.images.map(img => (typeof img === 'string' ? img : img.image_url)).filter(Boolean)
+        : [];
 
-      // Fill up to 4 images if fewer
-      GALLERY_FALLBACKS.forEach(fallback => {
-        if (rawImages.length < 4 && !rawImages.includes(fallback)) {
-          rawImages.push(fallback);
+      const primaryImg = data.cover_image_url || images[0] || GALLERY_FALLBACKS[0];
+
+      const tabs = [];
+
+      // 1) Video first
+      if (data.video_url) {
+        tabs.push({
+          type: 'video',
+          url: data.video_url,
+          poster: primaryImg,
+        });
+      }
+
+      // 2) Images next (cover + gallery)
+      const seen = new Set();
+      const pushImage = (url) => {
+        if (url && !seen.has(url)) {
+          seen.add(url);
+          tabs.push({ type: 'image', url });
         }
-      });
-      setGalleryImages(rawImages.slice(0, 4));
+      };
+      if (data.cover_image_url) pushImage(data.cover_image_url);
+      images.forEach(pushImage);
 
-      // Fetch similar listings for sidebar
+      // 3) Fill with fallbacks up to 4 tabs
+      GALLERY_FALLBACKS.forEach(fb => {
+        if (tabs.length < 4) pushImage(fb);
+      });
+
+      setMediaTabs(tabs.slice(0, 4));
+
+      // Set initial active media: video first if available
+      const initial = tabs[0] || { type: 'image', url: GALLERY_FALLBACKS[0] };
+      setActiveMedia(initial);
+      setIsPlaying(false);
+
+      // Fetch similar listings
       try {
         const allListings = await fetchListings();
         const filtered = allListings.filter(item => String(item.id) !== String(id)).slice(0, 3);
@@ -115,44 +139,50 @@ export default function ListingDetailPage() {
     );
   }
 
-  // Values formatted to match reference design
-  const title = listing.title || "El-Shaddai Royal Suite";
-  const location = listing.location || "El-Shaddai Royal Suite";
-  const propertyType = listing.rooms || "Self-Contained";
-  const entryRent = listing.first_price || listing.price 
-    ? `₦${Number(listing.first_price || listing.price).toLocaleString()}` 
-    : "₦350,000";
-  const renewalRent = listing.year_price 
-    ? `₦${Number(listing.year_price).toLocaleString()}` 
-    : "₦280,000";
-  const description = listing.description || "A spacious, modern self-contained apartment located steps away from Ifite Down School. Includes 24/7 security, personal balcony, and reliable water supply.";
+  // ---- Field mapping matched to your JSON ----
+  const title = listing.lodge_name || "Untitled Lodge";
+  const location = listing.location_display || listing.location || "Unknown Location";
+  const propertyType = listing.room_type
+    ? listing.room_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+    : "Self-Contained";
+  const entryRent = listing.first_price
+    ? `₦${Number(listing.first_price).toLocaleString()}`
+    : "Price on request";
+  const renewalRent = listing.year_price
+    ? `₦${Number(listing.year_price).toLocaleString()}`
+    : "N/A";
+  const description = listing.description || "No description provided.";
 
-  // Display Amenities parsed from API
   const displayAmenities = parseAmenities(listing.amenities);
 
-  // Sharable Link with embedded metadata parameters
-  const shareUrl = `${window.location.origin}/details/${listing.id}?title=${encodeURIComponent(title)}&image=${encodeURIComponent(activeImage)}&desc=${encodeURIComponent(description)}`;
+  // Sharable link — use activeMedia url only if it's an image; fallback to cover
+  const shareImage = activeMedia?.type === 'image'
+    ? activeMedia.url
+    : (listing.cover_image_url || GALLERY_FALLBACKS[0]);
+  const shareUrl = `${window.location.origin}/details/${listing.id}?title=${encodeURIComponent(title)}&image=${encodeURIComponent(shareImage)}&desc=${encodeURIComponent(description)}`;
 
   // Agent profile details
   const agentDetail = listing.agent_detail || {};
-  const agentName = listing.agent_name || agentDetail.full_name || agentDetail.username || "David Chukwuchebem";
+  const agentName = listing.agent_name || agentDetail.full_name || agentDetail.username || "Agent";
   const agentId = listing.agent || agentDetail.id || listing.id;
-  const agentPhone = listing.agent_phone || agentDetail.phone_number || listing.contact_phone || "08107045642";
-  const agentEmail = listing.agent_email || agentDetail.email || listing.contact_email || "daviddominic767@gmail.com";
+  const agentPhone = listing.agent_phone || agentDetail.phone_number || listing.contact_phone || "";
+  const agentEmail = listing.agent_email || agentDetail.email || listing.contact_email || "";
   const agencyName = listing.agency || agentDetail.agency_name || null;
-  const agentSubtitle = agencyName || listing.location_display || listing.location || "Ifite Omohia";
+  const agentSubtitle = agencyName || listing.location_display || listing.location || "";
   const agentAvatar = listing.agent_avatar || agentDetail.avatar || "/avatar.png";
 
-  // WhatsApp Agent Link (sanitized for Nigerian numbers +234)
+  // WhatsApp link
   const rawPhone = String(agentPhone).replace(/[^0-9+]/g, '');
   let cleanPhone = rawPhone.replace(/^\+/, '');
   if (cleanPhone.startsWith('0')) {
     cleanPhone = '234' + cleanPhone.slice(1);
-  } else if (!cleanPhone.startsWith('234')) {
+  } else if (cleanPhone && !cleanPhone.startsWith('234')) {
     cleanPhone = '234' + cleanPhone;
   }
   const whatsappMessage = `Hi ${agentName}, I am interested in booking/viewing "${title}".\n\nProperty Link:\n${shareUrl}`;
-  const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(whatsappMessage)}`;
+  const whatsappUrl = cleanPhone
+    ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(whatsappMessage)}`
+    : `mailto:${agentEmail}?subject=${encodeURIComponent('Inquiry: ' + title)}&body=${encodeURIComponent(whatsappMessage)}`;
 
   // Share handlers
   const handleNativeShare = async () => {
@@ -165,7 +195,7 @@ export default function ListingDetailPage() {
         });
         return;
       } catch (err) {
-        // Fallback to modal if user canceled or failed
+        // Fallback to modal
       }
     }
     setShareModalOpen(true);
@@ -177,28 +207,74 @@ export default function ListingDetailPage() {
     setTimeout(() => setCopied(false), 3000);
   };
 
+  // Tab click handler — resets video play state
+  const handleTabClick = (tab) => {
+    setActiveMedia(tab);
+    setIsPlaying(false);
+  };
+
+  // Video play toggle
+  const handlePlayVideo = () => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play();
+        setIsPlaying(true);
+      } else {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 animate-fade-in">
       
-      {/* 2-Column Main Layout Grid matching design */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
         
-        {/* LEFT COLUMN: Main Image, Thumbnails, Details, & Action Button */}
+        {/* LEFT COLUMN */}
         <div className="lg:col-span-8 space-y-6">
           
-          {/* Main Hero Image with Share Overlay */}
-          <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden bg-slate-100 shadow-md">
-            <img 
-              src={activeImage} 
-              alt={title}
-              className="w-full h-full object-cover object-center transition-all duration-300"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = GALLERY_FALLBACKS[0];
-              }}
-            />
+          {/* Main Hero — Image OR Video */}
+          <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden bg-slate-900 shadow-md">
+            {activeMedia?.type === 'video' ? (
+              <>
+                <video
+                  ref={videoRef}
+                  src={activeMedia.url}
+                  poster={activeMedia.poster}
+                  className="w-full h-full object-cover object-center"
+                  controls={isPlaying}
+                  playsInline
+                  preload="metadata"
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
+                  onEnded={() => setIsPlaying(false)}
+                />
+                {!isPlaying && (
+                  <button
+                    onClick={handlePlayVideo}
+                    aria-label="Play video"
+                    className="absolute inset-0 z-10 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors group"
+                  >
+                    <span className="flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/95 group-hover:bg-white shadow-2xl ring-4 ring-white/30 transition-transform active:scale-95">
+                      <Play className="w-9 h-9 sm:w-10 sm:h-10 text-[#222761] fill-[#222761] translate-x-0.5" />
+                    </span>
+                  </button>
+                )}
+              </>
+            ) : (
+              <img 
+                src={activeMedia?.url || GALLERY_FALLBACKS[0]} 
+                alt={title}
+                className="w-full h-full object-cover object-center transition-all duration-300"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = GALLERY_FALLBACKS[0];
+                }}
+              />
+            )}
 
-            {/* Share Button Overlay (Top Right) */}
+            {/* Share Button Overlay */}
             <button
               onClick={handleNativeShare}
               className="absolute top-4 right-4 z-20 bg-white/90 hover:bg-white text-slate-800 font-semibold px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm shadow-md backdrop-blur-sm flex items-center gap-2 transition-all active:scale-95"
@@ -208,29 +284,39 @@ export default function ListingDetailPage() {
             </button>
           </div>
 
-          {/* 4 Thumbnail Image Gallery */}
+          {/* Media Tabs Gallery (images + video) */}
           <div className="grid grid-cols-4 gap-3 sm:gap-4">
-            {galleryImages.map((imgUrl, idx) => (
-              <button
-                key={idx}
-                onClick={() => setActiveImage(imgUrl)}
-                className={`relative aspect-[4/3] w-full rounded-xl sm:rounded-2xl overflow-hidden border-2 transition-all ${
-                  activeImage === imgUrl 
-                    ? 'border-indigo-600 shadow-md scale-[0.98]' 
-                    : 'border-transparent opacity-85 hover:opacity-100'
-                }`}
-              >
-                <img 
-                  src={imgUrl} 
-                  alt={`Lodge view ${idx + 1}`} 
-                  className="w-full h-full object-cover" 
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = GALLERY_FALLBACKS[idx % GALLERY_FALLBACKS.length];
-                  }}
-                />
-              </button>
-            ))}
+            {mediaTabs.map((tab, idx) => {
+              const isActive = activeMedia?.url === tab.url;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => handleTabClick(tab)}
+                  className={`relative aspect-[4/3] w-full rounded-xl sm:rounded-2xl overflow-hidden border-2 transition-all ${
+                    isActive 
+                      ? 'border-indigo-600 shadow-md scale-[0.98]' 
+                      : 'border-transparent opacity-85 hover:opacity-100'
+                  }`}
+                >
+                  <img 
+                    src={tab.type === 'video' ? tab.poster : tab.url} 
+                    alt={tab.type === 'video' ? `Video ${idx + 1}` : `Lodge view ${idx + 1}`}
+                    className="w-full h-full object-cover" 
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = GALLERY_FALLBACKS[idx % GALLERY_FALLBACKS.length];
+                    }}
+                  />
+                  {tab.type === 'video' && (
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/35">
+                      <span className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 shadow-md">
+                        <Play className="w-4 h-4 sm:w-5 sm:h-5 text-[#222761] fill-[#222761] translate-x-0.5" />
+                      </span>
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* Title & Description */}
@@ -243,21 +329,18 @@ export default function ListingDetailPage() {
             </p>
           </div>
 
-          {/* Details / Key Specs List matching reference */}
+          {/* Details / Key Specs */}
           <div className="space-y-3 pt-2 text-slate-600 text-xs sm:text-sm font-medium">
-            {/* Location */}
             <div className="flex items-center gap-3">
               <MapPin className="w-5 h-5 text-slate-700 shrink-0" />
               <span>{location}</span>
             </div>
 
-            {/* Property Type */}
             <div className="flex items-center gap-3">
               <Home className="w-5 h-5 text-slate-700 shrink-0" />
               <span>{propertyType}</span>
             </div>
 
-            {/* Entry Rent */}
             <div className="flex items-center gap-3">
               <Calendar className="w-5 h-5 text-slate-700 shrink-0" />
               <div className="flex items-center gap-1">
@@ -266,7 +349,6 @@ export default function ListingDetailPage() {
               </div>
             </div>
 
-            {/* Renewal Rent */}
             <div className="flex items-center gap-3">
               <RefreshCw className="w-5 h-5 text-slate-700 shrink-0" />
               <div className="flex items-center gap-1">
@@ -275,7 +357,6 @@ export default function ListingDetailPage() {
               </div>
             </div>
 
-            {/* Proximity to Campus */}
             <div className="flex items-center gap-3">
               <MoveHorizontal className="w-5 h-5 text-slate-700 shrink-0" />
               <div className="flex items-center gap-1">
@@ -284,26 +365,27 @@ export default function ListingDetailPage() {
               </div>
             </div>
 
-            {/* Amenities */}
-            <div className="flex items-start sm:items-center gap-3">
-              <Sparkles className="w-5 h-5 text-slate-700 shrink-0 mt-0.5 sm:mt-0" />
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-slate-500">Amenities:</span>
-                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                  {displayAmenities.map((amenity, idx) => (
-                    <span 
-                      key={idx} 
-                      className="px-3 py-1 bg-[#E5E7EB] text-slate-700 text-xs font-semibold rounded-full"
-                    >
-                      {typeof amenity === 'string' ? amenity : amenity?.name || amenity?.title || amenity}
-                    </span>
-                  ))}
+            {displayAmenities.length > 0 && (
+              <div className="flex items-start sm:items-center gap-3">
+                <Sparkles className="w-5 h-5 text-slate-700 shrink-0 mt-0.5 sm:mt-0" />
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-slate-500">Amenities:</span>
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    {displayAmenities.map((amenity, idx) => (
+                      <span 
+                        key={idx} 
+                        className="px-3 py-1 bg-[#E5E7EB] text-slate-700 text-xs font-semibold rounded-full"
+                      >
+                        {typeof amenity === 'string' ? amenity : amenity?.name || amenity?.title || amenity}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Agent Profile Section matching screenshot */}
+          {/* Agent Profile Section */}
           <div className="pt-3 sm:pt-4 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 sm:gap-4 min-w-0">
               <img 
@@ -325,7 +407,6 @@ export default function ListingDetailPage() {
               </div>
             </div>
 
-            {/* View Profile Button - Links to Agent Profile Page */}
             <Link
               to={`/agent/${agentId}`}
               className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-medium transition-all shadow-sm active:scale-95 shrink-0"
@@ -335,7 +416,7 @@ export default function ListingDetailPage() {
             </Link>
           </div>
 
-          {/* WhatsApp CTA Button */}
+          {/* WhatsApp CTA */}
           <div className="pt-2 sm:pt-4">
             <a
               href={whatsappUrl}
@@ -361,17 +442,16 @@ export default function ListingDetailPage() {
                 <ListingCard key={item.id} listing={item} />
               ))
             ) : (
-              // Fallback cards if no API items available
               [1, 2, 3].map(n => (
                 <ListingCard 
                   key={n} 
                   listing={{
                     id: n + 10,
-                    title: "El-Shaddai Royal Suite",
-                    location: "El-Shaddai Royal Suite",
-                    rooms: "Self-Contained",
-                    price: 350000,
-                    renewalPrice: 280000,
+                    lodge_name: "El-Shaddai Royal Suite",
+                    location_display: "Ifite Anambra",
+                    room_type: "SELF_CONTAINED",
+                    first_price: 350000,
+                    year_price: 280000,
                     cover_image_url: GALLERY_FALLBACKS[n % GALLERY_FALLBACKS.length]
                   }} 
                 />
@@ -382,12 +462,11 @@ export default function ListingDetailPage() {
 
       </div>
 
-      {/* SHARE MODAL / DIALOG */}
+      {/* SHARE MODAL */}
       {shareModalOpen && (
         <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto bg-slate-900/60 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full mt-12 sm:mt-0 overflow-hidden border border-slate-100 animate-slide-up">
             
-            {/* Header */}
             <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Share2 className="w-5 h-5 text-indigo-400" />
@@ -401,13 +480,11 @@ export default function ListingDetailPage() {
               </button>
             </div>
 
-            {/* Content Body */}
             <div className="p-6 space-y-5">
               
-              {/* Lodge Card Preview inside Modal */}
               <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200">
                 <img 
-                  src={activeImage} 
+                  src={shareImage} 
                   alt={title} 
                   className="w-16 h-16 rounded-xl object-cover shrink-0" 
                 />
@@ -418,7 +495,6 @@ export default function ListingDetailPage() {
                 </div>
               </div>
 
-              {/* Sharable Link Input & Copy Button */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-semibold text-slate-600">Sharable Web Link</label>
                 <div className="flex items-center gap-2 bg-slate-100 p-1.5 pl-3 rounded-2xl border border-slate-200">
@@ -451,11 +527,9 @@ export default function ListingDetailPage() {
                 </div>
               </div>
 
-              {/* Social Media Quick Sharing */}
               <div className="space-y-2 pt-1">
                 <span className="block text-xs font-semibold text-slate-600">Share via Social Media</span>
                 <div className="grid grid-cols-3 gap-2.5">
-                  {/* WhatsApp */}
                   <a
                     href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Check out ${title} on BookIt!\n${description}\n\nLink: ${shareUrl}`)}`}
                     target="_blank"
@@ -466,7 +540,6 @@ export default function ListingDetailPage() {
                     <span>WhatsApp</span>
                   </a>
 
-                  {/* Twitter / X */}
                   <a
                     href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${title} on BookIt!`)}&url=${encodeURIComponent(shareUrl)}`}
                     target="_blank"
@@ -477,7 +550,6 @@ export default function ListingDetailPage() {
                     <span>Twitter</span>
                   </a>
 
-                  {/* Facebook */}
                   <a
                     href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
                     target="_blank"

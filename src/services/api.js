@@ -255,53 +255,53 @@ export async function submitAgentRequest(formData) {
   }
 }
 
-export function parseAmenities(amenitiesInput) {
-  if (!amenitiesInput) return ["Running Water", "Electricity"];
+// export function parseAmenities(amenitiesInput) {
+//   if (!amenitiesInput) return ["Running Water", "Electricity"];
 
-  let result = [];
+//   let result = [];
 
-  const extractItem = (item) => {
-    if (!item) return;
-    if (typeof item === 'string') {
-      let trimmed = item.trim();
-      if ((trimmed.startsWith('[') && trimmed.endsWith(']')) || (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
-        try {
-          const parsed = JSON.parse(trimmed);
-          if (Array.isArray(parsed)) {
-            parsed.forEach(extractItem);
-            return;
-          }
-        } catch {
-          // not valid JSON
-        }
-      }
-      trimmed = trimmed.replace(/^\[|\]$/g, '').replace(/^"|"$/g, '').replace(/\\"/g, '"').trim();
-      if (trimmed) {
-        if (trimmed.includes(',')) {
-          trimmed.split(',').forEach(sub => {
-            const cleanSub = sub.replace(/^"|"$/g, '').trim();
-            if (cleanSub) result.push(cleanSub);
-          });
-        } else {
-          result.push(trimmed);
-        }
-      }
-    } else if (typeof item === 'object') {
-      if (item.name) extractItem(item.name);
-      else if (item.title) extractItem(item.title);
-      else if (item.amenity) extractItem(item.amenity);
-    }
-  };
+//   const extractItem = (item) => {
+//     if (!item) return;
+//     if (typeof item === 'string') {
+//       let trimmed = item.trim();
+//       if ((trimmed.startsWith('[') && trimmed.endsWith(']')) || (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
+//         try {
+//           const parsed = JSON.parse(trimmed);
+//           if (Array.isArray(parsed)) {
+//             parsed.forEach(extractItem);
+//             return;
+//           }
+//         } catch {
+//           // not valid JSON
+//         }
+//       }
+//       trimmed = trimmed.replace(/^\[|\]$/g, '').replace(/^"|"$/g, '').replace(/\\"/g, '"').trim();
+//       if (trimmed) {
+//         if (trimmed.includes(',')) {
+//           trimmed.split(',').forEach(sub => {
+//             const cleanSub = sub.replace(/^"|"$/g, '').trim();
+//             if (cleanSub) result.push(cleanSub);
+//           });
+//         } else {
+//           result.push(trimmed);
+//         }
+//       }
+//     } else if (typeof item === 'object') {
+//       if (item.name) extractItem(item.name);
+//       else if (item.title) extractItem(item.title);
+//       else if (item.amenity) extractItem(item.amenity);
+//     }
+//   };
 
-  if (Array.isArray(amenitiesInput)) {
-    amenitiesInput.forEach(extractItem);
-  } else {
-    extractItem(amenitiesInput);
-  }
+//   if (Array.isArray(amenitiesInput)) {
+//     amenitiesInput.forEach(extractItem);
+//   } else {
+//     extractItem(amenitiesInput);
+//   }
 
-  const unique = Array.from(new Set(result)).filter(Boolean);
-  return unique.length > 0 ? unique : ["Running Water", "Electricity"];
-}
+//   const unique = Array.from(new Set(result)).filter(Boolean);
+//   return unique.length > 0 ? unique : ["Running Water", "Electricity"];
+// }
 
 function formatRoomType(value) {
   if (!value) return "Self-Contained";
@@ -372,6 +372,20 @@ function normalizeListing(item) {
   const amenitiesList = parseAmenities(item.amenities);
   const agentDetail = item.agent_detail || {};
 
+  // ---- VIDEO NORMALIZATION ----
+  // API may return `video_url` (absolute Cloudinary URL) and/or `video` (relative path).
+  // Build a single absolute URL the UI can trust.
+  const CLOUDINARY_BASE = "https://res.cloudinary.com/dx0faws91/";
+  let videoUrl = null;
+
+  if (item.video_url) {
+    videoUrl = item.video_url;
+  } else if (item.video) {
+    videoUrl = String(item.video).startsWith("http")
+      ? item.video
+      : `${CLOUDINARY_BASE}${String(item.video).replace(/^\/+/, "")}`;
+  }
+
   return {
     id: item.id,
     title: item.title || item.lodge_name || "Student Lodge",
@@ -392,6 +406,11 @@ function normalizeListing(item) {
     room_number: item.room_number,
     amenities: amenitiesList,
     rules: item.rules || "No loud music after 10 PM. Maintain cleanliness.",
+
+    // ---- VIDEO FIELDS (preserved for the UI) ----
+    video: item.video || null,
+    video_url: videoUrl,
+
     agent_name: item.agent_name || agentDetail.full_name || agentDetail.username || "David Chukwuchebem",
     agent_phone: item.agent_phone || item.contact_phone || agentDetail.phone_number || "08107045642",
     agent_email: item.agent_email || item.contact_email || agentDetail.email || "daviddominic767@gmail.com",
@@ -418,4 +437,32 @@ function getApiErrorMessage(data) {
     })
     .filter(Boolean)
     .join("; ");
+}
+
+export function parseAmenities(amenities) {
+  if (!amenities || !Array.isArray(amenities)) return [];
+
+  const result = [];
+  amenities.forEach(item => {
+    if (typeof item === 'string') {
+      result.push(item);
+      return;
+    }
+    if (item?.name && typeof item.name === 'string') {
+      try {
+        const parsed = JSON.parse(item.name);
+        if (Array.isArray(parsed)) {
+          result.push(...parsed);
+          return;
+        }
+      } catch {
+        result.push(item.name);
+        return;
+      }
+    }
+    if (item?.title) result.push(item.title);
+    if (item?.label) result.push(item.label);
+  });
+
+  return [...new Set(result)];
 }
