@@ -1,8 +1,6 @@
 import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Home, Calendar, RefreshCw } from 'lucide-react';
-
-const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=600&q=75';
+import { Building2, MapPin, Home, Calendar, RefreshCw } from 'lucide-react';
 
 function ListingCard({ listing = {} }) {
   // Values with dynamic fallbacks
@@ -18,16 +16,20 @@ function ListingCard({ listing = {} }) {
     <div className="relative w-full max-w-sm rounded-xl sm:rounded-[32px] overflow-hidden bg-slate-100 shadow-sm hover:shadow-md transition-shadow">
       {/* Background Image Container */}
       <div className="relative aspect-[4/3] w-full overflow-hidden">
-        <img
-          src={listing.cover_image_url || DEFAULT_IMAGE}
-          alt={title}
-          loading="lazy"
-          className="w-full h-full object-cover object-top"
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = DEFAULT_IMAGE;
-          }}
-        />
+        <div className="absolute inset-0 flex items-center justify-center text-slate-400">
+          <Building2 className="w-10 h-10" aria-hidden="true" />
+        </div>
+        {listing.cover_image_url && (
+          <img
+            src={listing.cover_image_url}
+            alt={title}
+            loading="lazy"
+            className="relative w-full h-full object-cover object-top"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        )}
 
         {/* Top Right "View" Button Overlay */}
         <Link

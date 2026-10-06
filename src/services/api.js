@@ -154,9 +154,8 @@ export async function createListing(listingData, imageFiles = null, token = null
     year_price: listingData.year_price,
     location: listingData.location,
     room_type: listingData.room_type || toRoomType(listingData.rooms),
-    total_rooms: listingData.total_rooms || 1,
+    total_rooms: listingData.total_rooms ?? 1,
     room_number: listingData.room_number || '',
-    video: listingData.video || '',
     is_available: listingData.is_available !== false,
     rules: listingData.rules || '',
     contact_phone: listingData.contact_phone || listingData.agent_phone,
@@ -176,7 +175,11 @@ export async function createListing(listingData, imageFiles = null, token = null
       : String(listingData.amenities || '').split(',').map(s => s.trim()).filter(Boolean);
 
   if (amenityNames.length > 0) {
-    formData.append('amenity_names', JSON.stringify(amenityNames));
+    amenityNames.forEach(name => formData.append('amenity_names', name));
+  }
+
+  if (listingData.video instanceof File) {
+    formData.append('video', listingData.video, listingData.video.name);
   }
 
   const filesToUpload = Array.isArray(imageFiles) 
@@ -360,13 +363,15 @@ export async function fetchAgentById(agentId) {
 function normalizeListing(item) {
   const price = Number(item.year_price || item.first_price || item.price || 0);
 
-  let imageUrl = item.cover_image_url || item.image || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=600&q=75";
-  let images = [];
-
-  if (item.images && Array.isArray(item.images) && item.images.length > 0) {
-    images = item.images.map(img => typeof img === 'string' ? { image_url: img } : img);
-  } else {
-    images = [{ image_url: imageUrl }];
+  const images = Array.isArray(item.images)
+    ? item.images
+      .map(img => typeof img === 'string' ? { image_url: img } : img)
+      .filter(img => img && (img.image_url || img.image))
+    : [];
+  const imageUrl = item.cover_image_url || item.image ||
+    images.find(img => img.is_primary)?.image_url || images[0]?.image_url || null;
+  if (imageUrl && !images.some(img => img.image_url === imageUrl || img.image === imageUrl)) {
+    images.unshift({ image_url: imageUrl });
   }
 
   const amenitiesList = parseAmenities(item.amenities);

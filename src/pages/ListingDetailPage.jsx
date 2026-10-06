@@ -18,16 +18,10 @@ import {
   ArrowLeft,
   MessageSquareText,
   Play,
-  Video
+  Video,
+  Building2
 } from 'lucide-react';
 import { FaWhatsapp, FaTwitter, FaFacebookF } from 'react-icons/fa';
-
-const GALLERY_FALLBACKS = [
-  'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80'
-];
 
 export default function ListingDetailPage() {
   const { id } = useParams();
@@ -61,7 +55,7 @@ export default function ListingDetailPage() {
         ? data.images.map(img => (typeof img === 'string' ? img : img.image_url)).filter(Boolean)
         : [];
 
-      const primaryImg = data.cover_image_url || images[0] || GALLERY_FALLBACKS[0];
+      const primaryImg = data.cover_image_url || images[0] || null;
 
       const tabs = [];
 
@@ -85,16 +79,10 @@ export default function ListingDetailPage() {
       if (data.cover_image_url) pushImage(data.cover_image_url);
       images.forEach(pushImage);
 
-      // 3) Fill with fallbacks up to 4 tabs
-      GALLERY_FALLBACKS.forEach(fb => {
-        if (tabs.length < 4) pushImage(fb);
-      });
-
       setMediaTabs(tabs.slice(0, 4));
 
       // Set initial active media: video first if available
-      const initial = tabs[0] || { type: 'image', url: GALLERY_FALLBACKS[0] };
-      setActiveMedia(initial);
+      setActiveMedia(tabs[0] || null);
       setIsPlaying(false);
 
       // Fetch similar listings
@@ -158,8 +146,10 @@ export default function ListingDetailPage() {
   // Sharable link — use activeMedia url only if it's an image; fallback to cover
   const shareImage = activeMedia?.type === 'image'
     ? activeMedia.url
-    : (listing.cover_image_url || GALLERY_FALLBACKS[0]);
-  const shareUrl = `${window.location.origin}/details/${listing.id}?title=${encodeURIComponent(title)}&image=${encodeURIComponent(shareImage)}&desc=${encodeURIComponent(description)}`;
+    : listing.cover_image_url || null;
+  const shareParams = new URLSearchParams({ title, desc: description });
+  if (shareImage) shareParams.set('image', shareImage);
+  const shareUrl = `${window.location.origin}/details/${listing.id}?${shareParams.toString()}`;
 
   // Agent profile details
   const agentDetail = listing.agent_detail || {};
@@ -262,16 +252,19 @@ export default function ListingDetailPage() {
                   </button>
                 )}
               </>
-            ) : (
+            ) : activeMedia?.type === 'image' ? (
               <img 
-                src={activeMedia?.url || GALLERY_FALLBACKS[0]} 
+                src={activeMedia.url}
                 alt={title}
                 className="w-full h-full object-cover object-center transition-all duration-300"
                 onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = GALLERY_FALLBACKS[0];
+                  e.currentTarget.style.visibility = 'hidden';
                 }}
               />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-slate-100 text-slate-400">
+                <Building2 className="w-12 h-12" aria-hidden="true" />
+              </div>
             )}
 
             {/* Share Button Overlay */}
@@ -303,8 +296,7 @@ export default function ListingDetailPage() {
                     alt={tab.type === 'video' ? `Video ${idx + 1}` : `Lodge view ${idx + 1}`}
                     className="w-full h-full object-cover" 
                     onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = GALLERY_FALLBACKS[idx % GALLERY_FALLBACKS.length];
+                      e.currentTarget.style.visibility = 'hidden';
                     }}
                   />
                   {tab.type === 'video' && (
@@ -452,7 +444,6 @@ export default function ListingDetailPage() {
                     room_type: "SELF_CONTAINED",
                     first_price: 350000,
                     year_price: 280000,
-                    cover_image_url: GALLERY_FALLBACKS[n % GALLERY_FALLBACKS.length]
                   }} 
                 />
               ))

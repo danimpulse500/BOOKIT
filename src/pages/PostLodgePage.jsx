@@ -18,15 +18,12 @@ import {
 
 const LOCATION_OPTIONS = [
   { value: "AROMA", label: "Aroma" },
-  { value: "IFITE_ANAMBRA", label: "Ifite Anambra" },
-  { value: "IFITE_UP", label: "Ifite Up-School" },
-  { value: "IFITE_DOWN", label: "Ifite Down-School" },
   { value: "AMANSEA", label: "Amansea" },
-  { value: "PERMANENT_SITE", label: "Permanent Site" },
-  { value: "TEMP_SITE", label: "Temp Site" },
-  { value: "UNIZIK_GATE", label: "Unizik Gate" },
-  { value: "OKPUNO", label: "Okpuno" },
-  { value: "AWKA_ROAD", label: "Awka Road" }
+  { value: "IFITE_ANAMBRA", label: "Ifite Anambra" },
+  { value: "IFITE UP SCHOOL", label: "Ifite Up-School" },
+  { value: "IFITE DOWN SCHOOL", label: "Ifite Down-School" },
+  { value: "TEMP SITE", label: "Temp Site" },
+  { value: "OTHER", label: "Other" }
 ];
 
 const ROOM_TYPE_OPTIONS = [
@@ -65,7 +62,6 @@ export default function PostLodgePage() {
     amenity_names: ["Running Water", "Electricity", "24/7 Security"],
     total_rooms: '10',
     room_number: 'Flat 1',
-    video: '',
     is_available: true,
     rules: 'No loud music after 10 PM. Maintain cleanliness.',
     contact_phone: user?.phone || '08011112222',
@@ -74,6 +70,7 @@ export default function PostLodgePage() {
 
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [videoFile, setVideoFile] = useState(null);
   const [customAmenity, setCustomAmenity] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -141,7 +138,7 @@ export default function PostLodgePage() {
         amenity_names: formData.amenity_names,
         total_rooms: Number(formData.total_rooms) || 1,
         room_number: formData.room_number,
-        video: formData.video,
+        video: videoFile,
         is_available: formData.is_available,
         rules: formData.rules,
         contact_phone: formData.contact_phone,
@@ -191,6 +188,7 @@ export default function PostLodgePage() {
               type="text" 
               required
               placeholder="e.g. Peace Haven Lodge"
+              maxLength={255}
               value={formData.lodge_name}
               onChange={e => setFormData({ ...formData, lodge_name: e.target.value })}
               className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"
@@ -246,6 +244,8 @@ export default function PostLodgePage() {
               </label>
               <input 
                 type="number" 
+                min="0.01"
+                max="99999999.99"
                 step="0.01"
                 required
                 placeholder="e.g. 400000.00"
@@ -261,6 +261,8 @@ export default function PostLodgePage() {
               </label>
               <input 
                 type="number"
+                min="0"
+                max="99999999.99"
                 step="0.01"
                 placeholder="e.g. 300000.00 (Optional)"
                 value={formData.year_price}
@@ -279,6 +281,7 @@ export default function PostLodgePage() {
               <input 
                 type="number" 
                 min="1"
+                max="2147483647"
                 required
                 placeholder="e.g. 12"
                 value={formData.total_rooms}
@@ -293,6 +296,7 @@ export default function PostLodgePage() {
               </label>
               <input 
                 type="text" 
+                maxLength={50}
                 placeholder="e.g. Room A4 or Flat 2"
                 value={formData.room_number}
                 onChange={e => setFormData({ ...formData, room_number: e.target.value })}
@@ -391,19 +395,30 @@ export default function PostLodgePage() {
             ></textarea>
           </div>
 
-          {/* Video URL & House Rules */}
+          {/* Video Upload & House Rules */}
           <div>
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                Video Tour URL
+                Video Tour
               </label>
               <input 
-                type="url" 
-                placeholder="https://youtube.com/watch?v=... (Optional)"
-                value={formData.video}
-                onChange={e => setFormData({ ...formData, video: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"
+                type="file"
+                accept="video/*"
+                onChange={e => {
+                  const file = e.target.files?.[0] || null;
+                  if (file && !file.type.startsWith('video/')) {
+                    setError('Please select a valid video file.');
+                    e.target.value = '';
+                    return;
+                  }
+                  setVideoFile(file);
+                  setError(null);
+                }}
+                className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2"
               />
+              <p className="mt-1 text-xs text-slate-500">
+                Optional. Select a video file{videoFile ? `: ${videoFile.name}` : '.'}
+              </p>
             </div>
 
             {/* <div>
