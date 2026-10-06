@@ -95,7 +95,6 @@ export default function AgentProfilePage() {
 
   useEffect(() => {
     loadAgentData();
-    window.scrollTo(0, 0);
   }, [id]);
 
   const loadAgentData = async () => {
@@ -126,14 +125,16 @@ export default function AgentProfilePage() {
   };
 
   // WhatsApp Message
-  const rawPhone = String(agent?.phone_number || '08107045642').replace(/[^0-9+]/g, '');
+  const rawPhone = String(agent?.phone_number || '').replace(/[^0-9+]/g, '');
   let cleanPhone = rawPhone.replace(/^\+/, '');
   if (cleanPhone.startsWith('0')) {
     cleanPhone = '234' + cleanPhone.slice(1);
-  } else if (!cleanPhone.startsWith('234')) {
+  } else if (cleanPhone && !cleanPhone.startsWith('234')) {
     cleanPhone = '234' + cleanPhone;
   }
-  const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Hi ${agent?.full_name || 'Agent'}, I found your profile on BookIt and would like to inquire about your available lodges.`)}`;
+  const whatsappUrl = cleanPhone
+    ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Hi ${agent?.full_name || 'Agent'}, I found your profile on BookIt and would like to inquire about your available lodges.`)}`
+    : null;
 
   const firstName = agent?.full_name?.split(' ')[0] || "David";
 
@@ -250,12 +251,13 @@ export default function AgentProfilePage() {
 
           {/* Message Button (Opens WhatsApp) */}
           <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noreferrer"
+            href={whatsappUrl || undefined}
+            target={whatsappUrl ? '_blank' : undefined}
+            rel={whatsappUrl ? 'noreferrer' : undefined}
+            aria-disabled={!whatsappUrl}
             className="inline-flex items-center gap-2 px-5 sm:px-6 py-2 sm:py-2.5 rounded-full border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold transition-all shadow-sm active:scale-95"
           >
-            <span>Message</span>
+            <span>{agent?.phone_number || 'Contact unavailable'}</span>
             <MessageSquareText className="w-4 h-4 text-slate-600" />
           </a>
         </div>

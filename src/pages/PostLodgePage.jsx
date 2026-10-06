@@ -64,8 +64,8 @@ export default function PostLodgePage() {
     room_number: 'Flat 1',
     is_available: true,
     rules: 'No loud music after 10 PM. Maintain cleanliness.',
-    contact_phone: user?.phone || '08011112222',
-    contact_email: user?.email || 'agent@bookit.com'
+    contact_phone: user?.phone_number || user?.phone || '',
+    contact_email: user?.email || ''
   });
 
   const [imageFiles, setImageFiles] = useState([]);

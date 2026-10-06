@@ -16,7 +16,8 @@ import {
   ChevronRight, 
   Loader2, 
   Heart, 
-  Clock 
+  Clock,
+  KeyRound
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -90,12 +91,15 @@ export default function ProfilePage() {
   
   // Edit Profile Modal State
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editSection, setEditSection] = useState('profile');
   const [profileForm, setProfileForm] = useState({ 
-    full_name: user?.name || 'Akorede Ogunshola', 
-    phone_number: user?.phone || '08107045642' 
+    full_name: user?.full_name || user?.name || '',
+    phone_number: user?.phone_number || user?.phone || ''
   });
   const [passwordForm, setPasswordForm] = useState({ old_password: '', new_password1: '', new_password2: '' });
   const [accountMessage, setAccountMessage] = useState(null);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
 
   // Filters
   const [proximity, setProximity] = useState('5 mins walk');
@@ -123,25 +127,56 @@ export default function ProfilePage() {
 
   const handleProfileUpdate = async (event) => {
     event.preventDefault();
+    setSavingProfile(true);
+    setAccountMessage(null);
     try {
       await updateProfile(profileForm);
-      setAccountMessage('Profile updated successfully.');
-      setTimeout(() => setAccountMessage(null), 3000);
+      setAccountMessage({ type: 'success', text: 'Profile updated successfully.' });
     } catch (err) {
-      setAccountMessage(err.message || 'Unable to update profile.');
+      setAccountMessage({ type: 'error', text: err.message || 'Unable to update profile.' });
+    } finally {
+      setSavingProfile(false);
     }
   };
 
   const handlePasswordChange = async (event) => {
     event.preventDefault();
+    if (passwordForm.new_password1 !== passwordForm.new_password2) {
+      setAccountMessage({ type: 'error', text: 'The new passwords do not match.' });
+      return;
+    }
+
+    setChangingPassword(true);
+    setAccountMessage(null);
     try {
       await changePassword(passwordForm);
       setPasswordForm({ old_password: '', new_password1: '', new_password2: '' });
-      setAccountMessage('Password changed successfully.');
-      setTimeout(() => setAccountMessage(null), 3000);
+      setAccountMessage({ type: 'success', text: 'Password changed successfully.' });
     } catch (err) {
-      setAccountMessage(err.message || 'Unable to change password.');
+      setAccountMessage({ type: 'error', text: err.message || 'Unable to change password.' });
+    } finally {
+      setChangingPassword(false);
     }
+  };
+
+  useEffect(() => {
+    if (!editModalOpen) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setEditModalOpen(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [editModalOpen]);
+
+  const openEditModal = () => {
+    setProfileForm({
+      full_name: user?.full_name || user?.name || '',
+      phone_number: user?.phone_number || user?.phone || ''
+    });
+    setEditSection('profile');
+    setAccountMessage(null);
+    setEditModalOpen(true);
   };
 
   // User details with screenshot fallbacks
@@ -236,7 +271,7 @@ export default function ProfilePage() {
           {/* Edit Profile */}
           <button
             type="button"
-            onClick={() => setEditModalOpen(true)}
+            onClick={openEditModal}
             className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold transition-all shadow-sm active:scale-95"
           >
             <span>Edit Profile</span>
@@ -310,7 +345,7 @@ export default function ProfilePage() {
             <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 justify-items-center">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-6 justify-items-center">
             {paginatedListings.map((lodge, idx) => (
               <ListingCard key={`${lodge.id}-${idx}`} listing={lodge} />
             ))}
@@ -398,93 +433,182 @@ export default function ProfilePage() {
 
       {/* EDIT PROFILE MODAL */}
       {editModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100 animate-slide-up">
-            
-            <div className="px-6 py-4 bg-[#222761] text-white flex items-center justify-between">
-              <h3 className="font-bold text-base sm:text-lg">Edit Profile Details</h3>
-              <button 
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 p-0 backdrop-blur-sm animate-fade-in sm:items-center sm:p-4"
+          onMouseDown={event => {
+            if (event.target === event.currentTarget) setEditModalOpen(false);
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-profile-title"
+            className="flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-slate-100 bg-white shadow-2xl animate-slide-up sm:rounded-3xl"
+          >
+            <header className="flex items-start justify-between border-b border-slate-100 px-5 py-5 sm:px-7">
+              <div>
+                <h3 id="edit-profile-title" className="text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
+                  Account settings
+                </h3>
+                <p className="mt-1 text-sm text-slate-500">Manage your personal details and password.</p>
+              </div>
+              <button
+                type="button"
                 onClick={() => setEditModalOpen(false)}
-                className="text-white/80 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors"
+                aria-label="Close account settings"
+                className="rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" />
+              </button>
+            </header>
+
+            <div className="grid grid-cols-2 gap-1 border-b border-slate-100 px-5 pt-3 sm:px-7">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={editSection === 'profile'}
+                onClick={() => { setEditSection('profile'); setAccountMessage(null); }}
+                className={`flex items-center justify-center gap-2 rounded-t-xl border-b-2 px-3 py-3 text-sm font-semibold transition-colors ${
+                  editSection === 'profile'
+                    ? 'border-[#222761] text-[#222761]'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <UserPen className="h-4 w-4" />
+                Profile details
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={editSection === 'password'}
+                onClick={() => { setEditSection('password'); setAccountMessage(null); }}
+                className={`flex items-center justify-center gap-2 rounded-t-xl border-b-2 px-3 py-3 text-sm font-semibold transition-colors ${
+                  editSection === 'password'
+                    ? 'border-[#222761] text-[#222761]'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <KeyRound className="h-4 w-4" />
+                Password
               </button>
             </div>
 
-            <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+            <div className="overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
               {accountMessage && (
-                <div className="p-3 bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs font-semibold rounded-xl">
-                  {accountMessage}
+                <div
+                  role="status"
+                  className={`mb-5 rounded-xl border px-4 py-3 text-sm font-medium ${
+                    accountMessage.type === 'error'
+                      ? 'border-rose-200 bg-rose-50 text-rose-800'
+                      : 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                  }`}
+                >
+                  {accountMessage.text}
                 </div>
               )}
 
-              {/* Profile info form */}
-              <form onSubmit={handleProfileUpdate} className="space-y-4">
-                <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Account Information</h4>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Full Name</label>
-                  <input 
-                    required 
-                    value={profileForm.full_name} 
-                    onChange={e => setProfileForm({ ...profileForm, full_name: e.target.value })} 
-                    placeholder="Full name" 
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm outline-none focus:ring-2 focus:ring-indigo-500" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Phone Number</label>
-                  <input 
-                    required 
-                    value={profileForm.phone_number} 
-                    onChange={e => setProfileForm({ ...profileForm, phone_number: e.target.value })} 
-                    placeholder="Phone number" 
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm outline-none focus:ring-2 focus:ring-indigo-500" 
-                  />
-                </div>
-                <button 
-                  type="submit"
-                  className="w-full py-2.5 bg-[#222761] hover:bg-[#1a1e4c] text-white text-xs sm:text-sm font-bold rounded-xl transition-all shadow-sm"
-                >
-                  Save Account Details
-                </button>
-              </form>
-
-              <hr className="border-slate-200" />
-
-              {/* Password change form */}
-              <form onSubmit={handlePasswordChange} className="space-y-4">
-                <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Change Password</h4>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Old Password</label>
-                  <input 
-                    required 
-                    type="password" 
-                    value={passwordForm.old_password} 
-                    onChange={e => setPasswordForm({ ...passwordForm, old_password: e.target.value })} 
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm outline-none focus:ring-2 focus:ring-indigo-500" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">New Password</label>
-                  <input 
-                    required 
-                    type="password" 
-                    value={passwordForm.new_password1} 
-                    onChange={e => setPasswordForm({ ...passwordForm, new_password1: e.target.value })} 
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm outline-none focus:ring-2 focus:ring-indigo-500" 
-                  />
-                </div>
-                <button 
-                  type="submit"
-                  className="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-bold rounded-xl transition-all shadow-sm"
-                >
-                  Update Password
-                </button>
-              </form>
-
+              {editSection === 'profile' ? (
+                <form onSubmit={handleProfileUpdate} className="space-y-5">
+                  <div>
+                    <label htmlFor="profile-full-name" className="mb-1.5 block text-sm font-semibold text-slate-700">
+                      Full name
+                    </label>
+                    <input
+                      id="profile-full-name"
+                      name="full_name"
+                      autoComplete="name"
+                      required
+                      value={profileForm.full_name}
+                      onChange={e => setProfileForm({ ...profileForm, full_name: e.target.value })}
+                      placeholder="Enter your full name"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-shadow placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="profile-phone-number" className="mb-1.5 block text-sm font-semibold text-slate-700">
+                      Phone number
+                    </label>
+                    <input
+                      id="profile-phone-number"
+                      name="phone_number"
+                      type="tel"
+                      autoComplete="tel"
+                      required
+                      value={profileForm.phone_number}
+                      onChange={e => setProfileForm({ ...profileForm, phone_number: e.target.value })}
+                      placeholder="Enter your phone number"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-shadow placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    />
+                    <p className="mt-1.5 text-xs text-slate-500">Include your country code so agents can contact you.</p>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={savingProfile}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#222761] px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1a1e4c] disabled:cursor-wait disabled:opacity-60"
+                  >
+                    {savingProfile && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {savingProfile ? 'Saving details...' : 'Save profile'}
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handlePasswordChange} className="space-y-5">
+                  <div>
+                    <label htmlFor="profile-old-password" className="mb-1.5 block text-sm font-semibold text-slate-700">
+                      Current password
+                    </label>
+                    <input
+                      id="profile-old-password"
+                      name="old_password"
+                      autoComplete="current-password"
+                      required
+                      type="password"
+                      value={passwordForm.old_password}
+                      onChange={e => setPasswordForm({ ...passwordForm, old_password: e.target.value })}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-shadow focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="profile-new-password" className="mb-1.5 block text-sm font-semibold text-slate-700">
+                      New password
+                    </label>
+                    <input
+                      id="profile-new-password"
+                      name="new_password1"
+                      autoComplete="new-password"
+                      required
+                      type="password"
+                      value={passwordForm.new_password1}
+                      onChange={e => setPasswordForm({ ...passwordForm, new_password1: e.target.value })}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-shadow focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="profile-confirm-password" className="mb-1.5 block text-sm font-semibold text-slate-700">
+                      Confirm new password
+                    </label>
+                    <input
+                      id="profile-confirm-password"
+                      name="new_password2"
+                      autoComplete="new-password"
+                      required
+                      type="password"
+                      value={passwordForm.new_password2}
+                      onChange={e => setPasswordForm({ ...passwordForm, new_password2: e.target.value })}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-shadow focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={changingPassword}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#222761] px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1a1e4c] disabled:cursor-wait disabled:opacity-60"
+                  >
+                    {changingPassword && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {changingPassword ? 'Updating password...' : 'Update password'}
+                  </button>
+                </form>
+              )}
             </div>
-
-          </div>
+          </section>
         </div>
       )}
 

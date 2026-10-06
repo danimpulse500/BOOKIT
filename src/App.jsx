@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
 import { SavedProvider } from './context/SavedContext';
@@ -20,6 +20,16 @@ import ContactPage from './pages/ContactPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import NotFoundPage from './pages/NotFoundPage';
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 export default function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ||
     '1050366268506-p146h6p6ctfgn3o6b175t22ibo29vand.apps.googleusercontent.com';
@@ -27,6 +37,7 @@ export default function App() {
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
       <Router>
+        <ScrollToTop />
         <AuthProvider>
           <SavedProvider>
             <div className="min-h-screen flex flex-col justify-between bg-white selection:bg-indigo-500 selection:text-white">

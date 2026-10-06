@@ -40,7 +40,6 @@ export default function ListingDetailPage() {
 
   useEffect(() => {
     loadDetails();
-    window.scrollTo(0, 0);
   }, [id]);
 
   const loadDetails = async () => {
@@ -155,7 +154,7 @@ export default function ListingDetailPage() {
   const agentDetail = listing.agent_detail || {};
   const agentName = listing.agent_name || agentDetail.full_name || agentDetail.username || "Agent";
   const agentId = listing.agent || agentDetail.id || listing.id;
-  const agentPhone = listing.agent_phone || agentDetail.phone_number || listing.contact_phone || "";
+  const agentPhone = agentDetail.phone_number || listing.agent_phone || listing.contact_phone || "";
   const agentEmail = listing.agent_email || agentDetail.email || listing.contact_email || "";
   const agencyName = listing.agency || agentDetail.agency_name || null;
   const agentSubtitle = agencyName || listing.location_display || listing.location || "";

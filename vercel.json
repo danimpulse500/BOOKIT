@@ -1,5 +1,11 @@
 {
+  "functions": {
+    "api/listing-preview.js": {
+      "includeFiles": "dist/index.html"
+    }
+  },
   "rewrites": [
+    { "source": "/details/:id", "destination": "/api/listing-preview?id=:id" },
     { "source": "/(.*)", "destination": "/" }
   ]
 }
