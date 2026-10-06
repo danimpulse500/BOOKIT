@@ -293,7 +293,7 @@ export default function AgentProfilePage() {
         </div>
 
         {/* 4-COLUMN RESPONSIVE LISTINGS GRID matching Screenshot 1 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 justify-items-center">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-6 justify-items-center">
           {paginatedListings.map((lodge, idx) => (
             <ListingCard key={`${lodge.id}-${idx}`} listing={lodge} />
           ))}
