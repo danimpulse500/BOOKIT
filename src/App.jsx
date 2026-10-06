@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
 import { SavedProvider } from './context/SavedContext';
@@ -38,6 +39,7 @@ export default function App() {
     <GoogleOAuthProvider clientId={googleClientId}>
       <Router>
         <ScrollToTop />
+        <Analytics />
         <AuthProvider>
           <SavedProvider>
             <div className="min-h-screen flex flex-col justify-between bg-white selection:bg-indigo-500 selection:text-white">

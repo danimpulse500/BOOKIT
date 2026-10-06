@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSaved } from '../context/SavedContext';
 import { fetchListings } from '../services/api';
@@ -162,11 +163,17 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!editModalOpen) return undefined;
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') setEditModalOpen(false);
     };
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [editModalOpen]);
 
   const openEditModal = () => {
@@ -433,6 +440,7 @@ export default function ProfilePage() {
 
       {/* EDIT PROFILE MODAL */}
       {editModalOpen && (
+        createPortal(
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 p-0 backdrop-blur-sm animate-fade-in sm:items-center sm:p-4"
           onMouseDown={event => {
@@ -609,7 +617,9 @@ export default function ProfilePage() {
               )}
             </div>
           </section>
-        </div>
+        </div>,
+        document.body
+        )
       )}
 
     </div>
