@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { createListing } from '../services/api';
@@ -70,10 +70,19 @@ export default function PostLodgePage() {
 
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const imagePreviewsRef = useRef([]);
   const [videoFile, setVideoFile] = useState(null);
   const [customAmenity, setCustomAmenity] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    imagePreviewsRef.current = imagePreviews;
+  }, [imagePreviews]);
+
+  useEffect(() => () => {
+    imagePreviewsRef.current.forEach(URL.revokeObjectURL);
+  }, []);
 
   // Handle adding amenity from dropdown or input
   const handleAddAmenity = (amenityToAdd) => {
@@ -99,27 +108,37 @@ export default function PostLodgePage() {
   // Handle Image Upload Selection
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
+    e.target.value = '';
     if (!files.length) return;
 
     const validFiles = [];
-    const previews = [];
-
+    const invalidReasons = [];
     for (const file of files) {
       if (!file.type.startsWith('image/')) {
-        setError('Please select valid image files.');
-        return;
+        invalidReasons.push(`${file.name} is not a valid image.`);
+      } else if (file.size > 5 * 1024 * 1024) {
+        invalidReasons.push(`${file.name} is larger than 5MB.`);
+      } else if (imageFiles.some(existing =>
+        existing.name === file.name &&
+        existing.size === file.size &&
+        existing.lastModified === file.lastModified
+      )) {
+        continue;
+      } else {
+        validFiles.push(file);
       }
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Each image must be smaller than 5MB.');
-        return;
-      }
-      validFiles.push(file);
-      previews.push(URL.createObjectURL(file));
     }
 
-    setError(null);
-    setImageFiles(validFiles);
-    setImagePreviews(previews);
+    const newPreviews = validFiles.map(file => URL.createObjectURL(file));
+    setImageFiles(current => [...current, ...validFiles]);
+    setImagePreviews(current => [...current, ...newPreviews]);
+    setError(invalidReasons.length ? invalidReasons.join(' ') : null);
+  };
+
+  const handleRemoveImage = (index) => {
+    URL.revokeObjectURL(imagePreviews[index]);
+    setImagePreviews(current => current.filter((_, imageIndex) => imageIndex !== index));
+    setImageFiles(current => current.filter((_, imageIndex) => imageIndex !== index));
   };
 
   const handleSubmit = async (e) => {
@@ -483,30 +502,49 @@ export default function PostLodgePage() {
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
               Uploaded Images
             </label>
-            <div className="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-2xl p-6 text-center transition-colors cursor-pointer relative bg-slate-50">
+            <div className="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-2xl p-6 text-center transition-colors bg-slate-50">
               <input 
+                id="lodge-images"
                 type="file" 
                 multiple
                 accept="image/*"
                 onChange={handleImageChange}
-                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                className="sr-only"
               />
               {imagePreviews.length > 0 ? (
                 <div className="space-y-3">
                   <div className="flex flex-wrap justify-center gap-3">
                     {imagePreviews.map((preview, idx) => (
-                      <img key={idx} src={preview} alt={`Preview ${idx + 1}`} className="h-24 w-28 rounded-xl object-cover shadow-sm border border-slate-200" />
+                      <div key={`${imageFiles[idx].name}-${imageFiles[idx].lastModified}`} className="relative">
+                        <img src={preview} alt={`Preview ${idx + 1}`} className="h-24 w-28 rounded-xl object-cover shadow-sm border border-slate-200" />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(idx)}
+                          aria-label={`Remove image ${idx + 1}`}
+                          className="absolute -right-2 -top-2 rounded-full bg-white p-1 text-slate-700 shadow"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
                     ))}
                   </div>
-                  <p className="text-xs text-indigo-600 font-semibold">Click or drag to change selected images</p>
+                  <p className="text-xs text-indigo-600 font-semibold">
+                    {imageFiles.length} image{imageFiles.length === 1 ? '' : 's'} selected. You can add more or remove individual images.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-2 text-slate-500">
                   <Upload className="w-8 h-8 mx-auto text-indigo-500" />
-                  <p className="text-sm font-medium">Drag & drop or click to upload photos</p>
+                  <p className="text-sm font-medium">Choose multiple lodge photos</p>
                   <p className="text-xs text-slate-400">PNG, JPG, WEBP up to 5MB each</p>
                 </div>
               )}
+              <label
+                htmlFor="lodge-images"
+                className="mt-3 inline-flex cursor-pointer items-center rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200"
+              >
+                {imageFiles.length ? 'Add more images' : 'Select images'}
+              </label>
             </div>
           </div>
 
