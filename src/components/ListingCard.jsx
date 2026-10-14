@@ -30,6 +30,20 @@ function ListingCard({ listing = {} }) {
             }}
           />
         )}
+        {!listing.cover_image_url && listing.video_url && (
+          <video
+            src={listing.video_url}
+            muted
+            playsInline
+            preload="metadata"
+            tabIndex={-1}
+            aria-hidden="true"
+            className="relative w-full h-full object-cover object-top pointer-events-none"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        )}
 
         {/* Top Right "View" Button Overlay */}
         <Link
